@@ -1,0 +1,27 @@
+h1 {
+  margin-top: 0;
+}
+.hint {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9rem;
+  max-width: 640px;
+}
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+.err {
+  color: #c62828;
+  margin-bottom: 1rem;
+}
+table {
+  width: 100%;
+}
+.j {
+  font-size: 0.7rem;
+  max-width: 400px;
+  max-height: 120px;
+  overflow: auto;
+  margin: 0;
+}

@@ -1,0 +1,59 @@
+<h1>Messages de contact</h1>
+@if (loading()) {
+  <div class="center"><mat-spinner /></div>
+} @else {
+  @if (error()) {
+    <p class="err">{{ error() }}</p>
+  }
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z1">
+    <ng-container matColumnDef="createdAt">
+      <th mat-header-cell *matHeaderCellDef>Date</th>
+      <td mat-cell *matCellDef="let r">{{ r.createdAt | date: 'short' }}</td>
+    </ng-container>
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Nom</th>
+      <td mat-cell *matCellDef="let r">{{ r.name }}</td>
+    </ng-container>
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>Email</th>
+      <td mat-cell *matCellDef="let r">{{ r.email }}</td>
+    </ng-container>
+    <ng-container matColumnDef="subject">
+      <th mat-header-cell *matHeaderCellDef>Sujet</th>
+      <td mat-cell *matCellDef="let r" class="clip">{{ r.subject }}</td>
+    </ng-container>
+    <ng-container matColumnDef="read">
+      <th mat-header-cell *matHeaderCellDef>Lu</th>
+      <td mat-cell *matCellDef="let r">{{ r.read ? 'Oui' : 'Non' }}</td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let r">
+        @if (!r.read) {
+          <button
+            mat-icon-button
+            type="button"
+            (click)="markRead(r, true)"
+            title="Marquer lu"
+          >
+            <mat-icon>mark_email_read</mat-icon>
+          </button>
+        } @else {
+          <button
+            mat-icon-button
+            type="button"
+            (click)="markRead(r, false)"
+            title="Marquer non lu"
+          >
+            <mat-icon>mark_email_unread</mat-icon>
+          </button>
+        }
+        <button mat-icon-button color="warn" type="button" (click)="remove(r)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+}

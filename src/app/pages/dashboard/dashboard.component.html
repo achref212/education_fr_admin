@@ -1,0 +1,50 @@
+<h1>Tableau de bord</h1>
+@if (loading()) {
+  <div class="center"><mat-spinner /></div>
+} @else {
+  @if (error()) {
+    <p class="err">{{ error() }}</p>
+  } @else {
+    @if (stats(); as s) {
+    <div class="kpi">
+      <app-stat-card label="Utilisateurs" [value]="s.totalUsers" />
+      <app-stat-card
+        label="Utilisateurs actifs"
+        [value]="s.activeUsers"
+      />
+      <app-stat-card label="Leçons" [value]="s.totalLessons" />
+      <app-stat-card label="Questions quiz" [value]="s.totalQuizQuestions" />
+      <app-stat-card label="Histoires" [value]="s.totalStories" />
+      <app-stat-card
+        label="Messages non lus"
+        [value]="s.unreadMessages"
+        hint="Contact"
+      />
+      <app-stat-card
+        label="Salles multijoueur"
+        [value]="s.multiplayerRooms"
+      />
+    </div>
+    <div class="charts">
+      <div class="chart">
+        <canvas
+          baseChart
+          [type]="usersByLevelChart.type"
+          [data]="usersByLevelChart.data"
+          [options]="usersByLevelChart.options"
+        >
+        </canvas>
+      </div>
+      <div class="chart">
+        <canvas
+          baseChart
+          [type]="lessonsByCategoryChart.type"
+          [data]="lessonsByCategoryChart.data"
+          [options]="lessonsByCategoryChart.options"
+        >
+        </canvas>
+      </div>
+    </div>
+    }
+  }
+}

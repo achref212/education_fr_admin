@@ -1,0 +1,32 @@
+h1 {
+  margin-top: 0;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.err {
+  color: #c62828;
+  margin-bottom: 1rem;
+}
+
+table {
+  width: 100%;
+}
+
+.mt {
+  margin-top: 1.5rem;
+  display: block;
+}
+
+.json {
+  font-size: 0.8rem;
+  overflow: auto;
+  max-height: 240px;
+  background: #fafafa;
+  padding: 0.5rem;
+  border-radius: 4px;
+}

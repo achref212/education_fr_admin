@@ -1,0 +1,24 @@
+.shell {
+  height: 100vh;
+}
+
+.sidenav {
+  width: 240px;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.brand {
+  padding: 1rem 1rem 0.5rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+mat-nav-list a.active {
+  background: rgba(63, 81, 181, 0.12);
+}
+
+.content {
+  padding: 1rem 1.25rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}

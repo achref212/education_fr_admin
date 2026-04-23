@@ -1,0 +1,41 @@
+<h1>Progression (lecture seule)</h1>
+@if (loading()) {
+  <div class="center"><mat-spinner /></div>
+} @else {
+  @if (error()) {
+    <p class="err">{{ error() }}</p>
+  }
+  <table mat-table [dataSource]="dataSource" multiTemplateDataRows class="mat-elevation-z1">
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>Email</th>
+      <td mat-cell *matCellDef="let r">{{ r.user.email }}</td>
+    </ng-container>
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Nom</th>
+      <td mat-cell *matCellDef="let r">
+        {{ r.user.firstName }} {{ r.user.lastName }}
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="lessons">
+      <th mat-header-cell *matHeaderCellDef>Leçons complétées</th>
+      <td mat-cell *matCellDef="let r">{{ lessonsCount(r) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="quizzes">
+      <th mat-header-cell *matHeaderCellDef>Clés quiz</th>
+      <td mat-cell *matCellDef="let r">{{ quizKeys(r) }}</td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+
+  <mat-accordion class="mt">
+    @for (r of dataSource.data; track r.user.id) {
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Détail JSON — {{ r.user.email }}</mat-panel-title>
+        </mat-expansion-panel-header>
+        <pre class="json">{{ r.progress | json }}</pre>
+      </mat-expansion-panel>
+    }
+  </mat-accordion>
+}

@@ -1,0 +1,21 @@
+h1 {
+  margin-top: 0;
+}
+.center {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+.err {
+  color: #c62828;
+  margin-bottom: 1rem;
+}
+table {
+  width: 100%;
+}
+.clip {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
