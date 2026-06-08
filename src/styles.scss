@@ -1,4 +1,186 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+/* ── CSS Variables ─────────────────────────────────────────────────── */
+:root {
+  --clr-primary:       #6366f1;
+  --clr-primary-dark:  #4f46e5;
+  --clr-primary-light: #818cf8;
+  --clr-secondary:     #ec4899;
+  --clr-accent:        #06b6d4;
+  --clr-success:       #10b981;
+  --clr-warning:       #f59e0b;
+  --clr-danger:        #ef4444;
+  --clr-orange:        #f97316;
+
+  --clr-bg:            #0f0f23;
+  --clr-surface:       #1a1a3e;
+  --clr-surface-2:     #22224e;
+  --clr-border:        rgba(255,255,255,.08);
+  --clr-text:          #e2e8f0;
+  --clr-text-muted:    #94a3b8;
+
+  --sidebar-w:         260px;
+  --radius:            16px;
+  --radius-sm:         10px;
+  --shadow:            0 8px 32px rgba(0,0,0,.35);
+  --shadow-sm:         0 4px 16px rgba(0,0,0,.2);
+  --transition:        all .3s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Light mode overrides ───────────────────────────────────────────── */
+[data-theme='light'] {
+  --clr-bg:            #f0f2ff;
+  --clr-surface:       #ffffff;
+  --clr-surface-2:     #eef0fb;
+  --clr-border:        rgba(99,102,241,.12);
+  --clr-text:          #1e1b4b;
+  --clr-text-muted:    #6b7280;
+  --clr-primary-light: #6366f1;
+  --shadow:            0 8px 32px rgba(99,102,241,.12);
+  --shadow-sm:         0 4px 16px rgba(99,102,241,.08);
+}
+
+/* ── Reset & base ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  background: var(--clr-bg);
+  color: var(--clr-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: rgba(99,102,241,.4); border-radius: 99px; }
+
+/* ── Material overrides ─────────────────────────────────────────────── */
+.mat-mdc-card            { background: var(--clr-surface) !important; color: var(--clr-text) !important; border-radius: var(--radius) !important; }
+.mat-mdc-form-field .mdc-text-field { border-radius: var(--radius-sm) !important; }
+.mat-drawer-container    { background: var(--clr-bg) !important; }
+.mat-drawer              { background: var(--clr-surface) !important; }
+.mat-mdc-progress-spinner circle { stroke: var(--clr-primary) !important; }
+
+/* ── Global keyframes ────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33%       { transform: translateY(-20px) rotate(5deg); }
+  66%       { transform: translateY(-10px) rotate(-5deg); }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(.9); box-shadow: 0 0 0 0 rgba(99,102,241,.5); }
+  70%  { transform: scale(1);  box-shadow: 0 0 0 16px rgba(99,102,241,0); }
+  100% { transform: scale(.9); box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+}
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Utility ─────────────────────────────────────────────────────────── */
+.anim-fade-up   { animation: fadeInUp .5s ease both; }
+.anim-fade-left { animation: fadeInLeft .5s ease both; }
+.anim-scale-in  { animation: scaleIn .4s ease both; }
+
+/* ── Form dialog panel ───────────────────────────────────────────────── */
+.form-dialog-panel .mat-mdc-dialog-container {
+  border-radius: 24px !important;
+  background: var(--clr-surface) !important;
+  padding: 0 !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,.45) !important;
+  overflow: hidden;
+}
+.form-dialog-panel .mdc-dialog__surface {
+  border-radius: 24px !important;
+  background: var(--clr-surface) !important;
+  overflow: visible;
+}
+.form-dialog-panel .mat-mdc-dialog-content {
+  padding: 0 !important;
+  max-height: none !important;
+}
+
+/* ── Detail dialog panel ─────────────────────────────────────────────── */
+.detail-panel .mat-mdc-dialog-container {
+  border-radius: 24px !important;
+  background: var(--clr-surface) !important;
+  padding: 0 !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,.4) !important;
+  overflow: hidden;
+}
+.detail-panel .mdc-dialog__surface {
+  border-radius: 24px !important;
+  background: var(--clr-surface) !important;
+}
+
+/* ── Material dialog backdrop ────────────────────────────────────────── */
+.cdk-overlay-backdrop.cdk-overlay-dark-backdrop {
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(4px);
+}
+
+/* ── Light mode misc fixes ────────────────────────────────────────────── */
+[data-theme='light'] {
+  .sidebar { background: white; }
+  .topbar  { background: white; }
+  .mat-mdc-progress-spinner circle { stroke: var(--clr-primary) !important; }
+}
+
+/* ── Badge light-mode overrides ──────────────────────────────────────────
+   Pastel text colors look great on dark surfaces but become near-invisible
+   on white. In light mode we swap them for saturated/dark equivalents.
+───────────────────────────────────────────────────────────────────────── */
+[data-theme='light'] {
+  /* role / category badges */
+  .badge-admin,
+  .badge-gram  { background: rgba(99,102,241,.12); color: #4338ca; border: 1px solid rgba(99,102,241,.25); }
+
+  .badge-user,
+  .badge-conj  { background: rgba(6,182,212,.12);  color: #0e7490; border: 1px solid rgba(6,182,212,.25); }
+
+  .badge-active,
+  .badge-orth  { background: rgba(16,185,129,.12); color: #047857; border: 1px solid rgba(16,185,129,.25); }
+
+  .badge-inactive { background: rgba(239,68,68,.1); color: #b91c1c; border: 1px solid rgba(239,68,68,.2); }
+
+  .badge-unread { background: rgba(249,115,22,.12); color: #c2410c; border: 1px solid rgba(249,115,22,.25); }
+
+  .badge-voca   { background: rgba(245,158,11,.12); color: #92400e; border: 1px solid rgba(245,158,11,.25); }
+
+  /* detail-dialog inline badges */
+  .badge-admin { color: #4338ca !important; }
+  .badge-user  { color: #0e7490 !important; }
+  .badge-active   { color: #047857 !important; }
+  .badge-inactive { color: #b91c1c !important; }
+
+  /* score badges in progress page */
+  .score-badge        { background: rgba(16,185,129,.12); color: #047857; }
+  .score-badge.score-bad { background: rgba(239,68,68,.1);  color: #b91c1c; }
+
+  /* correct-option label in quiz table — already uses #10b981 which is fine */
+}

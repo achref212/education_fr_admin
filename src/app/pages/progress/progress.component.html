@@ -1,41 +1,97 @@
-<h1>Progression (lecture seule)</h1>
-@if (loading()) {
-  <div class="center"><mat-spinner /></div>
-} @else {
-  @if (error()) {
-    <p class="err">{{ error() }}</p>
-  }
-  <table mat-table [dataSource]="dataSource" multiTemplateDataRows class="mat-elevation-z1">
-    <ng-container matColumnDef="email">
-      <th mat-header-cell *matHeaderCellDef>Email</th>
-      <td mat-cell *matCellDef="let r">{{ r.user.email }}</td>
-    </ng-container>
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef>Nom</th>
-      <td mat-cell *matCellDef="let r">
-        {{ r.user.firstName }} {{ r.user.lastName }}
-      </td>
-    </ng-container>
-    <ng-container matColumnDef="lessons">
-      <th mat-header-cell *matHeaderCellDef>Leçons complétées</th>
-      <td mat-cell *matCellDef="let r">{{ lessonsCount(r) }}</td>
-    </ng-container>
-    <ng-container matColumnDef="quizzes">
-      <th mat-header-cell *matHeaderCellDef>Clés quiz</th>
-      <td mat-cell *matCellDef="let r">{{ quizKeys(r) }}</td>
-    </ng-container>
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
+<div class="page-header">
+  <div class="ph-text">
+    <h1 class="ph-title">
+      <mat-icon class="ph-icon" style="color:#2dd4bf">trending_up</mat-icon>
+      Progression des élèves
+    </h1>
+    <p class="ph-sub">Suivez les leçons complétées, scores aux quiz et temps d'apprentissage de chaque élève</p>
+  </div>
+</div>
 
-  <mat-accordion class="mt">
-    @for (r of dataSource.data; track r.user.id) {
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>Détail JSON — {{ r.user.email }}</mat-panel-title>
-        </mat-expansion-panel-header>
-        <pre class="json">{{ r.progress | json }}</pre>
-      </mat-expansion-panel>
+<div class="search-bar">
+  <mat-icon>search</mat-icon>
+  <input placeholder="Rechercher par nom ou e-mail…"
+         [(ngModel)]="searchTerm" (input)="applyFilter()" />
+</div>
+
+<div class="table-wrap">
+  @if (loading()) {
+    <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <mat-icon>trending_up</mat-icon>
+      <p>Aucune progression trouvée</p>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Élève</th>
+          <th>E-mail</th>
+          <th>Leçons complétées</th>
+          <th>Quiz réalisés</th>
+          <th>Score moyen</th>
+          <th>Progression</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of paginated(); track row.user.id) {
+          <tr (click)="openDetail(row)">
+            <td>
+              <div class="cell-primary">
+                <div class="cell-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">
+                  {{ row.user.firstName[0] }}{{ row.user.lastName[0] }}
+                </div>
+                {{ row.user.firstName }} {{ row.user.lastName }}
+              </div>
+            </td>
+            <td class="cell-muted">{{ row.user.email }}</td>
+            <td>
+              <span class="progress-count" style="color:#6ee7b7">
+                <mat-icon style="font-size:14px;width:14px;height:14px;vertical-align:middle">menu_book</mat-icon>
+                {{ lessonsCount(row) }}
+              </span>
+            </td>
+            <td>
+              <span class="progress-count" style="color:#fbbf24">
+                <mat-icon style="font-size:14px;width:14px;height:14px;vertical-align:middle">quiz</mat-icon>
+                {{ quizCount(row) }}
+              </span>
+            </td>
+            <td>
+              @if (avgScore(row) !== null) {
+                <span class="score-badge" [class.score-good]="avgScore(row)! >= 70" [class.score-bad]="avgScore(row)! < 50">
+                  {{ avgScore(row) }}%
+                </span>
+              } @else {
+                <span class="cell-muted">—</span>
+              }
+            </td>
+            <td>
+              <div class="mini-bar-wrap">
+                <div class="mini-bar" [style.width]="progressPct(row) + '%'"></div>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="page-btn" (click)="setPage(0)" [disabled]="pageIndex === 0"><mat-icon>first_page</mat-icon></button>
+        <button class="page-btn" (click)="setPage(pageIndex - 1)" [disabled]="pageIndex === 0"><mat-icon>chevron_left</mat-icon></button>
+        @for (p of pages(); track p) {
+          @if (p >= pageIndex - 2 && p <= pageIndex + 2) {
+            <button class="page-btn" [class.active]="p === pageIndex" (click)="setPage(p)">{{ p + 1 }}</button>
+          }
+        }
+        <button class="page-btn" (click)="setPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>chevron_right</mat-icon></button>
+        <button class="page-btn" (click)="setPage(totalPages() - 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>last_page</mat-icon></button>
+        <span class="page-info">{{ pageIndex + 1 }} / {{ totalPages() }}</span>
+      </div>
     }
-  </mat-accordion>
-}
+    <div class="table-footer">
+      <span>{{ filtered().length }} élève(s)</span>
+    </div>
+  }
+</div>

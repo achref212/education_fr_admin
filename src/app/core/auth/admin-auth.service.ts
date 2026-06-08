@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
@@ -7,7 +7,22 @@ import { environment } from '../../../environments/environment';
 import { TokenResponse, UserOut } from '../models/user.model';
 
 const TOKEN_KEY = 'efr_admin_token';
-const USER_KEY = 'efr_admin_user';
+const USER_KEY  = 'efr_admin_user';
+
+function parseHttpError(e: unknown): Error {
+  if (e instanceof HttpErrorResponse) {
+    const detail: string | undefined = e.error?.detail;
+    if (e.status === 0) return new Error('NETWORK_ERROR');
+    if (e.status === 403) return new Error('SETUP_DONE');
+    if (e.status === 409) return new Error('EMAIL_TAKEN');
+    if (detail?.includes('Setup already completed')) return new Error('SETUP_DONE');
+    if (detail?.includes('déjà utilisé')) return new Error('EMAIL_TAKEN');
+    if (detail) return new Error(detail);
+    return new Error(`Erreur ${e.status}: ${e.statusText}`);
+  }
+  if (e instanceof Error) return e;
+  return new Error('Erreur inconnue');
+}
 
 @Injectable({ providedIn: 'root' })
 export class AdminAuthService {
@@ -34,19 +49,51 @@ export class AdminAuthService {
     return this.userSignal()?.role === 'admin';
   }
 
-  async login(email: string, password: string): Promise<void> {
-    const res = await firstValueFrom(
-      this.http.post<TokenResponse>(`${environment.apiUrl}/auth/login`, {
-        email,
-        password,
-      }),
-    );
-    if (res.user.role !== 'admin') {
-      throw new Error('Accès réservé aux administrateurs');
+  /**
+   * Creates the first admin account via POST /admin/setup.
+   * Only works when no admin exists yet.
+   * Throws with a code string (SETUP_DONE | EMAIL_TAKEN | NETWORK_ERROR)
+   * so the UI can display a localized message.
+   */
+  async register(
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string,
+  ): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post(`${environment.apiUrl}/admin/setup`, {
+          firstName,
+          lastName,
+          email,
+          password,
+          level: '2e année primaire',
+        }),
+      );
+    } catch (e: unknown) {
+      throw parseHttpError(e);
     }
-    localStorage.setItem(TOKEN_KEY, res.access_token);
-    localStorage.setItem(USER_KEY, JSON.stringify(res.user));
-    this.userSignal.set(res.user);
+  }
+
+  async login(email: string, password: string): Promise<void> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post<TokenResponse>(`${environment.apiUrl}/auth/login`, {
+          email,
+          password,
+        }),
+      );
+      if (res.user.role !== 'admin') {
+        throw new Error('Accès réservé aux administrateurs');
+      }
+      localStorage.setItem(TOKEN_KEY, res.access_token);
+      localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+      this.userSignal.set(res.user);
+    } catch (e: unknown) {
+      if (e instanceof Error && e.message === 'Accès réservé aux administrateurs') throw e;
+      throw parseHttpError(e);
+    }
   }
 
   logout(): void {

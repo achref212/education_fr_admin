@@ -1,59 +1,101 @@
-<h1>Messages de contact</h1>
-@if (loading()) {
-  <div class="center"><mat-spinner /></div>
-} @else {
-  @if (error()) {
-    <p class="err">{{ error() }}</p>
-  }
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z1">
-    <ng-container matColumnDef="createdAt">
-      <th mat-header-cell *matHeaderCellDef>Date</th>
-      <td mat-cell *matCellDef="let r">{{ r.createdAt | date: 'short' }}</td>
-    </ng-container>
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef>Nom</th>
-      <td mat-cell *matCellDef="let r">{{ r.name }}</td>
-    </ng-container>
-    <ng-container matColumnDef="email">
-      <th mat-header-cell *matHeaderCellDef>Email</th>
-      <td mat-cell *matCellDef="let r">{{ r.email }}</td>
-    </ng-container>
-    <ng-container matColumnDef="subject">
-      <th mat-header-cell *matHeaderCellDef>Sujet</th>
-      <td mat-cell *matCellDef="let r" class="clip">{{ r.subject }}</td>
-    </ng-container>
-    <ng-container matColumnDef="read">
-      <th mat-header-cell *matHeaderCellDef>Lu</th>
-      <td mat-cell *matCellDef="let r">{{ r.read ? 'Oui' : 'Non' }}</td>
-    </ng-container>
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let r">
-        @if (!r.read) {
-          <button
-            mat-icon-button
-            type="button"
-            (click)="markRead(r, true)"
-            title="Marquer lu"
-          >
-            <mat-icon>mark_email_read</mat-icon>
-          </button>
-        } @else {
-          <button
-            mat-icon-button
-            type="button"
-            (click)="markRead(r, false)"
-            title="Marquer non lu"
-          >
-            <mat-icon>mark_email_unread</mat-icon>
-          </button>
+<div class="page-header">
+  <div class="ph-text">
+    <h1 class="ph-title">
+      <mat-icon class="ph-icon" style="color:#fb923c">mail</mat-icon>
+      Messages de contact
+    </h1>
+    <p class="ph-sub">Consultez et gérez les messages envoyés par les utilisateurs de la plateforme</p>
+  </div>
+  <div class="ph-actions">
+    <div class="filter-tabs">
+      <button class="ftab" [class.active]="filter === 'all'"    (click)="filter='all';applyFilter()">Tous</button>
+      <button class="ftab" [class.active]="filter === 'unread'" (click)="filter='unread';applyFilter()">Non lus</button>
+      <button class="ftab" [class.active]="filter === 'read'"   (click)="filter='read';applyFilter()">Lus</button>
+    </div>
+  </div>
+</div>
+
+<div class="search-bar">
+  <mat-icon>search</mat-icon>
+  <input placeholder="Rechercher par nom, e-mail ou sujet…"
+         [(ngModel)]="searchTerm" (input)="applyFilter()" />
+</div>
+
+<div class="table-wrap">
+  @if (loading()) {
+    <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <mat-icon>mail_outline</mat-icon>
+      <p>Aucun message trouvé</p>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Expéditeur</th>
+          <th>Sujet</th>
+          <th>Message</th>
+          <th>Statut</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of paginated(); track m.id) {
+          <tr [class.row-unread]="!m.read" (click)="openDetail(m)">
+            <td class="cell-muted">{{ m.createdAt | date:'dd/MM/yy HH:mm' }}</td>
+            <td>
+              <div class="cell-primary">
+                <div class="cell-avatar" style="background:linear-gradient(135deg,#f97316,#fb923c)">
+                  {{ m.name[0] }}
+                </div>
+                <div>
+                  <div>{{ m.name }}</div>
+                  <div class="cell-muted">{{ m.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="cell-primary" style="font-weight:600">{{ m.subject }}</td>
+            <td class="cell-muted"><span class="cell-truncate">{{ m.message }}</span></td>
+            <td>
+              <span class="badge" [class.badge-unread]="!m.read" [class.badge-read]="m.read">
+                {{ m.read ? 'Lu' : 'Non lu' }}
+              </span>
+            </td>
+            <td>
+              <div class="actions-cell">
+                @if (!m.read) {
+                  <button class="action-btn view" (click)="markRead(m, true); $event.stopPropagation()" title="Marquer lu">
+                    <mat-icon>done_all</mat-icon>
+                  </button>
+                }
+                <button class="action-btn del" (click)="confirmDelete(m); $event.stopPropagation()" title="Supprimer">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
         }
-        <button mat-icon-button color="warn" type="button" (click)="remove(r)">
-          <mat-icon>delete</mat-icon>
-        </button>
-      </td>
-    </ng-container>
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
-}
+      </tbody>
+    </table>
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="page-btn" (click)="setPage(0)" [disabled]="pageIndex === 0"><mat-icon>first_page</mat-icon></button>
+        <button class="page-btn" (click)="setPage(pageIndex - 1)" [disabled]="pageIndex === 0"><mat-icon>chevron_left</mat-icon></button>
+        @for (p of pages(); track p) {
+          @if (p >= pageIndex - 2 && p <= pageIndex + 2) {
+            <button class="page-btn" [class.active]="p === pageIndex" (click)="setPage(p)">{{ p + 1 }}</button>
+          }
+        }
+        <button class="page-btn" (click)="setPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>chevron_right</mat-icon></button>
+        <button class="page-btn" (click)="setPage(totalPages() - 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>last_page</mat-icon></button>
+        <span class="page-info">{{ pageIndex + 1 }} / {{ totalPages() }}</span>
+      </div>
+    }
+    <div class="table-footer">
+      <span>{{ filtered().length }} message(s)</span>
+      <span>{{ unreadCount }} non lu(s)</span>
+    </div>
+  }
+</div>

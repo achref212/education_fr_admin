@@ -1,24 +1,109 @@
-<mat-sidenav-container class="shell">
-  <mat-sidenav #drawer class="sidenav" mode="side" opened>
-    <div class="brand">Edu FR</div>
-    <mat-nav-list>
+<div class="app-shell">
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════════════════════════ -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+
+    <!-- brand -->
+    <div class="sidebar-brand">
+      <div class="brand-logo">
+        <mat-icon>school</mat-icon>
+      </div>
+      @if (!sidebarCollapsed) {
+        <div class="brand-text" @fadeLabel>
+          <span class="brand-name">Edu FR</span>
+          <span class="brand-role">Administration</span>
+        </div>
+      }
+      <button class="collapse-btn" (click)="toggleSidebar()">
+        <mat-icon>{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      </button>
+    </div>
+
+    <!-- user mini-card -->
+    @if (!sidebarCollapsed) {
+      <div class="sidebar-user" @fadeLabel>
+        <div class="user-avatar">
+          <mat-icon>admin_panel_settings</mat-icon>
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ userName }}</span>
+          <span class="user-badge">Admin</span>
+        </div>
+      </div>
+    }
+
+    <div class="sidebar-sep"></div>
+
+    <!-- navigation -->
+    <nav class="sidebar-nav">
       @for (item of nav; track item.path) {
-        <a
-          mat-list-item
-          [routerLink]="item.path"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
-        >
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
+        <a class="nav-item"
+           [routerLink]="item.path"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
+           [title]="item.label">
+          <div class="nav-icon" [style.background]="item.gradient">
+            <mat-icon>{{ item.icon }}</mat-icon>
+          </div>
+          @if (!sidebarCollapsed) {
+            <span class="nav-label" @fadeLabel>{{ item.label }}</span>
+            <div class="nav-arrow"><mat-icon>chevron_right</mat-icon></div>
+          }
         </a>
       }
-    </mat-nav-list>
-  </mat-sidenav>
-  <mat-sidenav-content>
-    <app-topbar (menuClick)="onMenuClick()" />
-    <main class="content">
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-sep"></div>
+      <button class="nav-item logout-btn" (click)="logout()">
+        <div class="nav-icon" style="background:linear-gradient(135deg,#ef4444,#f97316)">
+          <mat-icon>logout</mat-icon>
+        </div>
+        @if (!sidebarCollapsed) {
+          <span class="nav-label" @fadeLabel>Déconnexion</span>
+        }
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN CONTENT ══════════════════════════════════════════════════ -->
+  <div class="main-area">
+
+    <!-- topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-menu-btn" (click)="toggleSidebar()">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <div class="topbar-breadcrumb">
+          <span class="tb-page">{{ currentPageTitle }}</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-time">{{ currentTime }}</div>
+
+        <!-- Theme toggle -->
+        <button class="topbar-icon-btn theme-toggle" (click)="theme.toggle()" [title]="theme.isDark() ? 'Mode clair' : 'Mode sombre'">
+          <div class="theme-track" [class.light]="!theme.isDark()">
+            <div class="theme-thumb">
+              <mat-icon>{{ theme.isDark() ? 'dark_mode' : 'light_mode' }}</mat-icon>
+            </div>
+          </div>
+        </button>
+
+        <button class="topbar-icon-btn">
+          <mat-icon>notifications_none</mat-icon>
+          <span class="notif-dot"></span>
+        </button>
+        <div class="topbar-avatar">
+          <mat-icon>person</mat-icon>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content">
       <router-outlet />
     </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+
+  </div>
+</div>

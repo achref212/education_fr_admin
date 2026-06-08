@@ -1,45 +1,97 @@
-<div class="head">
-  <h1>Questions quiz</h1>
-  <button mat-raised-button color="primary" type="button" (click)="create()">
-    <mat-icon>add</mat-icon>
-    Nouvelle
-  </button>
+<div class="page-header">
+  <div class="ph-text">
+    <h1 class="ph-title">
+      <mat-icon class="ph-icon" style="color:#fbbf24">quiz</mat-icon>
+      Questions Quiz
+    </h1>
+    <p class="ph-sub">Questions à choix multiples avec explications — testez les connaissances des élèves</p>
+  </div>
+  <div class="ph-actions">
+    <button class="btn-add" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);box-shadow:0 6px 18px rgba(245,158,11,.35)" (click)="openCreate()">
+      <mat-icon>add</mat-icon> Nouvelle question
+    </button>
+  </div>
 </div>
-@if (loading()) {
-  <div class="center"><mat-spinner /></div>
-} @else {
-  @if (error()) {
-    <p class="err">{{ error() }}</p>
+
+<div class="search-bar">
+  <mat-icon>search</mat-icon>
+  <input placeholder="Rechercher par question, catégorie ou niveau…"
+         [(ngModel)]="searchTerm" (input)="applyFilter()" />
+  @if (searchTerm) {
+    <mat-icon style="cursor:pointer;color:rgba(255,255,255,.3)" (click)="searchTerm='';applyFilter()">close</mat-icon>
   }
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z1">
-    <ng-container matColumnDef="question">
-      <th mat-header-cell *matHeaderCellDef>Question</th>
-      <td mat-cell *matCellDef="let r" class="clip">{{ r.question }}</td>
-    </ng-container>
-    <ng-container matColumnDef="category">
-      <th mat-header-cell *matHeaderCellDef>Catégorie</th>
-      <td mat-cell *matCellDef="let r">{{ r.category }}</td>
-    </ng-container>
-    <ng-container matColumnDef="level">
-      <th mat-header-cell *matHeaderCellDef>Niveau</th>
-      <td mat-cell *matCellDef="let r">{{ r.level }}</td>
-    </ng-container>
-    <ng-container matColumnDef="options">
-      <th mat-header-cell *matHeaderCellDef>Options</th>
-      <td mat-cell *matCellDef="let r">{{ r.options?.length || 0 }}</td>
-    </ng-container>
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let r">
-        <button mat-icon-button type="button" (click)="edit(r)">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button color="warn" type="button" (click)="remove(r)">
-          <mat-icon>delete</mat-icon>
-        </button>
-      </td>
-    </ng-container>
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
-}
+</div>
+
+<div class="table-wrap">
+  @if (loading()) {
+    <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <mat-icon>quiz</mat-icon>
+      <p>Aucune question trouvée</p>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Question</th>
+          <th>Catégorie</th>
+          <th>Niveau</th>
+          <th>Réponse correcte</th>
+          <th>Options</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (q of paginated(); track q.id; let i = $index) {
+          <tr (click)="openDetail(q)">
+            <td class="cell-muted">{{ i + 1 }}</td>
+            <td style="max-width:260px">
+              <span class="cell-truncate">{{ q.question }}</span>
+            </td>
+            <td><span class="badge" [ngClass]="catBadge(q.category)">{{ q.category }}</span></td>
+            <td><span class="cell-code">{{ q.level }}</span></td>
+            <td>
+              <span class="correct-option">
+                <mat-icon style="font-size:14px;width:14px;height:14px;color:#6ee7b7;vertical-align:middle">check_circle</mat-icon>
+                {{ q.options[q.correctIndex] }}
+              </span>
+            </td>
+            <td>
+              <div class="options-pills">
+                @for (opt of q.options; track opt; let j = $index) {
+                  <span class="opt-pill" [class.opt-correct]="j === q.correctIndex">{{ opt }}</span>
+                }
+              </div>
+            </td>
+            <td>
+              <div class="actions-cell">
+                <button class="action-btn edit" (click)="openEdit(q); $event.stopPropagation()"><mat-icon>edit</mat-icon></button>
+                <button class="action-btn del"  (click)="confirmDelete(q); $event.stopPropagation()"><mat-icon>delete_outline</mat-icon></button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="page-btn" (click)="setPage(0)" [disabled]="pageIndex === 0"><mat-icon>first_page</mat-icon></button>
+        <button class="page-btn" (click)="setPage(pageIndex - 1)" [disabled]="pageIndex === 0"><mat-icon>chevron_left</mat-icon></button>
+        @for (p of pages(); track p) {
+          @if (p >= pageIndex - 2 && p <= pageIndex + 2) {
+            <button class="page-btn" [class.active]="p === pageIndex" (click)="setPage(p)">{{ p + 1 }}</button>
+          }
+        }
+        <button class="page-btn" (click)="setPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>chevron_right</mat-icon></button>
+        <button class="page-btn" (click)="setPage(totalPages() - 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>last_page</mat-icon></button>
+        <span class="page-info">{{ pageIndex + 1 }} / {{ totalPages() }}</span>
+      </div>
+    }
+    <div class="table-footer">
+      <span>{{ filtered().length }} question(s)</span>
+      <span>Page {{ pageIndex + 1 }} / {{ totalPages() || 1 }}</span>
+    </div>
+  }
+</div>

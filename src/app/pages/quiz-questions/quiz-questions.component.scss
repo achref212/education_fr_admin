@@ -1,28 +1,26 @@
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
+@use '../../shared/table';
+
+.correct-option {
+  display: flex; align-items: center; gap: 4px;
+  font-weight: 600; color: #10b981; font-size: 13px;
 }
-h1 {
-  margin: 0;
+.options-pills {
+  display: flex; flex-wrap: wrap; gap: 4px;
 }
-table {
-  width: 100%;
-}
-.center {
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
-}
-.err {
-  color: #c62828;
-  margin-bottom: 1rem;
-}
-.clip {
-  max-width: 320px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+
+/* Works in both dark AND light mode:
+   - rgba(99,102,241,.13) is visible against dark surfaces AND white
+   - var(--clr-text) ensures text is always readable */
+.opt-pill {
+  padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 500;
+  background: rgba(99,102,241,.13);
+  color: var(--clr-text);
+  border: 1px solid rgba(99,102,241,.25);
+
+  &.opt-correct {
+    background: rgba(16,185,129,.18);
+    color: #059669;
+    border-color: rgba(16,185,129,.4);
+    font-weight: 700;
+  }
 }

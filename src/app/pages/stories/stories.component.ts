@@ -1,71 +1,95 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 
 import { StoryOut } from '../../core/models/story.model';
 import { ApiService } from '../../core/http/api.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { StoryFormDialogComponent } from './story-form.dialog';
+import { DetailDialogComponent, DetailDialogData } from '../../shared/detail-dialog/detail-dialog.component';
 
 @Component({
   selector: 'app-stories',
   standalone: true,
-  imports: [MatTableModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './stories.component.html',
   styleUrl: './stories.component.scss',
 })
 export class StoriesComponent implements OnInit {
-  private readonly api = inject(ApiService);
+  private readonly api    = inject(ApiService);
   private readonly dialog = inject(MatDialog);
 
-  readonly loading = signal(true);
-  readonly error = signal('');
+  readonly loading  = signal(true);
+  readonly stories  = signal<StoryOut[]>([]);
+  readonly filtered = signal<StoryOut[]>([]);
 
-  displayedColumns = ['title', 'level', 'actions'];
-  dataSource = new MatTableDataSource<StoryOut>([]);
+  searchTerm = '';
+  pageSize   = 10;
+  pageIndex  = 0;
 
-  async ngOnInit(): Promise<void> {
-    await this.reload();
-  }
+  readonly paginated  = computed(() => this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize));
+  readonly totalPages = computed(() => Math.ceil(this.filtered().length / this.pageSize));
+
+  async ngOnInit(): Promise<void> { await this.reload(); }
 
   async reload(): Promise<void> {
     this.loading.set(true);
-    this.error.set('');
     try {
-      this.dataSource.data = await this.api.get<StoryOut[]>('/admin/stories');
-    } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Erreur');
-    } finally {
-      this.loading.set(false);
-    }
+      const list = await this.api.get<StoryOut[]>('/admin/stories');
+      this.stories.set(list);
+      this.applyFilter();
+    } finally { this.loading.set(false); }
   }
 
-  create(): void {
-    this.dialog
-      .open(StoryFormDialogComponent, { data: { row: null }, width: '560px' })
-      .afterClosed()
-      .subscribe((ok) => {
-        if (ok) void this.reload();
-      });
+  applyFilter(): void {
+    const q = this.searchTerm.toLowerCase();
+    this.filtered.set(q
+      ? this.stories().filter(s =>
+          s.title.toLowerCase().includes(q) ||
+          s.level?.toLowerCase().includes(q))
+      : [...this.stories()]);
+    this.pageIndex = 0;
   }
 
-  edit(row: StoryOut): void {
-    this.dialog
-      .open(StoryFormDialogComponent, { data: { row }, width: '560px' })
-      .afterClosed()
-      .subscribe((ok) => {
-        if (ok) void this.reload();
-      });
+  setPage(p: number): void { this.pageIndex = p; }
+  pages(): number[] { return Array.from({ length: this.totalPages() }, (_, i) => i); }
+
+  openDetail(s: StoryOut): void {
+    const data: DetailDialogData = {
+      title: s.title,
+      subtitle: s.level,
+      icon: 'auto_stories',
+      gradient: 'linear-gradient(135deg,#ec4899,#f43f5e)',
+      fields: [
+        { label: 'Titre',   value: s.title },
+        { label: 'Niveau',  value: s.level, type: 'code' },
+        { label: 'Audio',   value: s.audioUrl ? 'Disponible' : 'Non disponible', type: 'badge',
+          badgeClass: s.audioUrl ? 'badge-active' : 'badge-inactive' },
+        { label: 'Contenu', value: s.content, type: 'long' },
+      ],
+    };
+    this.dialog.open(DetailDialogComponent, { data, panelClass: 'detail-panel' });
   }
 
-  async remove(row: StoryOut): Promise<void> {
-    const data: ConfirmDialogData = { title: 'Supprimer', message: `« ${row.title} » ?` };
-    const ref = this.dialog.open(ConfirmDialogComponent, { data, width: '360px' });
-    const ok = await firstValueFrom(ref.afterClosed());
+  openCreate(): void {
+    this.dialog.open(StoryFormDialogComponent, { data: { row: null }, panelClass: 'form-dialog-panel' })
+      .afterClosed().subscribe(ok => { if (ok) void this.reload(); });
+  }
+
+  openEdit(row: StoryOut): void {
+    this.dialog.open(StoryFormDialogComponent, { data: { row }, panelClass: 'form-dialog-panel' })
+      .afterClosed().subscribe(ok => { if (ok) void this.reload(); });
+  }
+
+  async confirmDelete(row: StoryOut): Promise<void> {
+    const data: ConfirmDialogData = { title: 'Supprimer', message: `Supprimer « ${row.title} » ?` };
+    const ok = await firstValueFrom(
+      this.dialog.open(ConfirmDialogComponent, { data, width: '380px' }).afterClosed()
+    );
     if (!ok) return;
     await this.api.delete(`/admin/stories/${row.id}`);
     await this.reload();

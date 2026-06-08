@@ -1,21 +1,20 @@
-h1 {
-  margin-top: 0;
+@use '../../shared/table';
+
+.filter-tabs {
+  display: flex; gap: 4px;
+  background: var(--clr-surface-2, rgba(99,102,241,.05));
+  border: 1px solid var(--clr-border);
+  border-radius: 10px; padding: 4px;
 }
-.center {
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
+.ftab {
+  padding: 6px 14px; border: none; border-radius: 8px;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  color: var(--clr-text-muted); background: transparent; cursor: pointer;
+  transition: all .2s ease;
+  &.active {
+    background: rgba(249,115,22,.12); color: #f97316;
+  }
+  &:hover:not(.active) { color: var(--clr-text); }
 }
-.err {
-  color: #c62828;
-  margin-bottom: 1rem;
-}
-table {
-  width: 100%;
-}
-.clip {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+
+.row-unread td { background: rgba(249,115,22,.03); }

@@ -1,49 +1,97 @@
-import { Component, ViewChild } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { animate, style, transition, trigger } from '@angular/animations';
+import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
-import { TopbarComponent } from '../topbar/topbar.component';
+import { AdminAuthService } from '../../core/auth/admin-auth.service';
+import { ThemeService } from '../../core/theme/theme.service';
 
 interface NavItem {
   label: string;
   path: string;
   icon: string;
+  gradient: string;
 }
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [
-    MatSidenavModule,
-    MatListModule,
-    MatButtonModule,
-    MatIconModule,
-    RouterLink,
-    RouterLinkActive,
-    RouterOutlet,
-    TopbarComponent,
-  ],
+  imports: [MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
+  animations: [
+    trigger('fadeLabel', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateX(-8px)' }),
+        animate('200ms 100ms ease-out', style({ opacity: 1, transform: 'none' })),
+      ]),
+      transition(':leave', [
+        animate('150ms ease-in', style({ opacity: 0 })),
+      ]),
+    ]),
+  ],
 })
-export class MainLayoutComponent {
-  @ViewChild('drawer') drawer?: MatSidenav;
+export class MainLayoutComponent implements OnInit, OnDestroy {
+  private readonly auth   = inject(AdminAuthService);
+  private readonly router = inject(Router);
+  readonly theme = inject(ThemeService);
+  private _sub?: Subscription;
+
+  sidebarCollapsed = false;
+  currentPageTitle = 'Tableau de bord';
+  currentTime = '';
+  private _timer?: ReturnType<typeof setInterval>;
+
+  get userName(): string {
+    const u = this.auth.user();
+    return u ? `${u.firstName} ${u.lastName}` : 'Administrateur';
+  }
 
   readonly nav: NavItem[] = [
-    { label: 'Tableau de bord', path: '/dashboard', icon: 'dashboard' },
-    { label: 'Utilisateurs', path: '/users', icon: 'people' },
-    { label: 'Leçons', path: '/lessons', icon: 'menu_book' },
-    { label: 'Quiz', path: '/quiz-questions', icon: 'quiz' },
-    { label: 'Histoires', path: '/stories', icon: 'auto_stories' },
-    { label: 'Progression', path: '/progress', icon: 'trending_up' },
-    { label: 'Messages', path: '/contact-messages', icon: 'mail' },
-    { label: 'Multijoueur', path: '/multiplayer', icon: 'groups' },
+    { label: 'Tableau de bord', path: '/dashboard',        icon: 'dashboard',       gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
+    { label: 'Utilisateurs',    path: '/users',             icon: 'people',          gradient: 'linear-gradient(135deg,#06b6d4,#3b82f6)' },
+    { label: 'Leçons',          path: '/lessons',           icon: 'menu_book',       gradient: 'linear-gradient(135deg,#10b981,#34d399)' },
+    { label: 'Quiz',            path: '/quiz-questions',    icon: 'quiz',            gradient: 'linear-gradient(135deg,#f59e0b,#fbbf24)' },
+    { label: 'Histoires',       path: '/stories',           icon: 'auto_stories',    gradient: 'linear-gradient(135deg,#ec4899,#f43f5e)' },
+    { label: 'Progression',     path: '/progress',          icon: 'trending_up',     gradient: 'linear-gradient(135deg,#10b981,#06b6d4)' },
+    { label: 'Messages',        path: '/contact-messages',  icon: 'mail',            gradient: 'linear-gradient(135deg,#f97316,#fb923c)' },
+    { label: 'Multijoueur',     path: '/multiplayer',       icon: 'groups',          gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
   ];
 
-  onMenuClick(): void {
-    this.drawer?.toggle();
+  ngOnInit(): void {
+    this._updateTime();
+    this._timer = setInterval(() => this._updateTime(), 1000);
+
+    this._sub = this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => this._syncTitle());
+    this._syncTitle();
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this._timer);
+    this._sub?.unsubscribe();
+  }
+
+  toggleSidebar(): void {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+  }
+
+  logout(): void {
+    this.auth.logout();
+  }
+
+  private _updateTime(): void {
+    this.currentTime = new Date().toLocaleTimeString('fr-FR', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+  }
+
+  private _syncTitle(): void {
+    const url = this.router.url;
+    const match = this.nav.find(n => url.startsWith(n.path));
+    this.currentPageTitle = match?.label ?? 'Administration';
   }
 }

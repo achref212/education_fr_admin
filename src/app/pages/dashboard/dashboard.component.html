@@ -1,50 +1,116 @@
-<h1>Tableau de bord</h1>
+<!-- welcome banner -->
+<div class="welcome-banner anim-fade-up">
+  <div class="wb-text">
+    <span class="wb-greeting">Bonjour, {{ userName }} 👋</span>
+    <h1 class="wb-title">Tableau de bord</h1>
+    <p class="wb-sub">Vue d'ensemble de votre plateforme Education FR</p>
+  </div>
+  <div class="wb-badge">
+    <mat-icon>admin_panel_settings</mat-icon>
+    Administrateur
+  </div>
+</div>
+
 @if (loading()) {
-  <div class="center"><mat-spinner /></div>
+  <div class="loader-center">
+    <div class="fancy-loader">
+      <div class="loader-ring"></div>
+      <mat-icon class="loader-icon">school</mat-icon>
+    </div>
+    <p>Chargement des données…</p>
+  </div>
 } @else {
   @if (error()) {
-    <p class="err">{{ error() }}</p>
+    <div class="alert-error anim-scale-in">
+      <mat-icon>error_outline</mat-icon>{{ error() }}
+    </div>
   } @else {
     @if (stats(); as s) {
-    <div class="kpi">
-      <app-stat-card label="Utilisateurs" [value]="s.totalUsers" />
-      <app-stat-card
-        label="Utilisateurs actifs"
-        [value]="s.activeUsers"
-      />
-      <app-stat-card label="Leçons" [value]="s.totalLessons" />
-      <app-stat-card label="Questions quiz" [value]="s.totalQuizQuestions" />
-      <app-stat-card label="Histoires" [value]="s.totalStories" />
-      <app-stat-card
-        label="Messages non lus"
-        [value]="s.unreadMessages"
-        hint="Contact"
-      />
-      <app-stat-card
-        label="Salles multijoueur"
-        [value]="s.multiplayerRooms"
-      />
-    </div>
-    <div class="charts">
-      <div class="chart">
-        <canvas
-          baseChart
-          [type]="usersByLevelChart.type"
-          [data]="usersByLevelChart.data"
-          [options]="usersByLevelChart.options"
-        >
-        </canvas>
+
+      <!-- KPI grid -->
+      <div class="kpi-grid">
+        @for (card of kpiCards(s); track card.label; let i = $index) {
+          <app-stat-card
+            [label]="card.label"
+            [value]="card.value"
+            [hint]="card.hint ?? ''"
+            [style.animation-delay]="(i * 80) + 'ms'"
+          />
+        }
       </div>
-      <div class="chart">
-        <canvas
-          baseChart
-          [type]="lessonsByCategoryChart.type"
-          [data]="lessonsByCategoryChart.data"
-          [options]="lessonsByCategoryChart.options"
-        >
-        </canvas>
+
+      <!-- charts row -->
+      <div class="charts-row">
+
+        <div class="chart-card anim-fade-up" style="animation-delay:200ms">
+          <div class="chart-header">
+            <div class="chart-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+              <mat-icon>bar_chart</mat-icon>
+            </div>
+            <div>
+              <h3>Utilisateurs par niveau</h3>
+              <p>Distribution des apprenants</p>
+            </div>
+          </div>
+          <div class="chart-body">
+            <canvas
+              baseChart
+              [type]="usersByLevelChart.type"
+              [data]="usersByLevelChart.data"
+              [options]="usersByLevelChart.options">
+            </canvas>
+          </div>
+        </div>
+
+        <div class="chart-card anim-fade-up" style="animation-delay:320ms">
+          <div class="chart-header">
+            <div class="chart-icon" style="background:linear-gradient(135deg,#ec4899,#f97316)">
+              <mat-icon>donut_large</mat-icon>
+            </div>
+            <div>
+              <h3>Leçons par catégorie</h3>
+              <p>Répartition du contenu</p>
+            </div>
+          </div>
+          <div class="chart-body chart-body--donut">
+            <canvas
+              baseChart
+              [type]="lessonsByCategoryChart.type"
+              [data]="lessonsByCategoryChart.data"
+              [options]="lessonsByCategoryChart.options">
+            </canvas>
+          </div>
+        </div>
+
+      </div><!-- charts-row -->
+
+      <!-- modules description grid -->
+      <div class="modules-section anim-fade-up" style="animation-delay:400ms">
+        <h2 class="section-title">Modules de gestion</h2>
+        <p class="section-sub">Cliquez sur un module pour gérer son contenu</p>
+        <div class="modules-grid">
+          @for (m of modules; track m.label; let i = $index) {
+            <a class="module-card" [routerLink]="m.route"
+               [style.animation-delay]="(400 + i * 60) + 'ms'">
+              <div class="mc-top">
+                <div class="mc-icon" [style.background]="m.gradient">
+                  <mat-icon>{{ m.icon }}</mat-icon>
+                </div>
+                <span class="mc-badge" [style.color]="m.color" [style.background]="m.color + '1a'">
+                  {{ stats() ? m.count(stats()!) : 0 }}
+                </span>
+              </div>
+              <h3 class="mc-title">{{ m.label }}</h3>
+              <p class="mc-desc">{{ m.description }}</p>
+              <div class="mc-footer">
+                <span>Gérer</span>
+                <mat-icon>arrow_forward</mat-icon>
+              </div>
+            </a>
+          }
+        </div>
       </div>
-    </div>
+
     }
   }
 }
