@@ -50,7 +50,8 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "output": "/"
               }
             ],
             "styles": [
@@ -119,7 +120,8 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "output": "/"
               }
             ],
             "styles": [
@@ -131,5 +133,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "4c17a840-ead9-415f-836f-ee3bb722996b"
   }
 }

@@ -28,10 +28,12 @@
 .brand-logo {
   flex-shrink: 0;
   width: 40px; height: 40px; border-radius: 12px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 12px rgba(99,102,241,.4);
-  mat-icon { font-size: 22px; color: white; }
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(99,102,241,.25);
+}
+.brand-logo-img {
+  width: 100%; height: 100%; object-fit: contain;
 }
 .brand-text { flex: 1; min-width: 0; overflow: hidden; }
 .brand-name  {

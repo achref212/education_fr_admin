@@ -14,7 +14,7 @@ import { AdminAuthService } from '../../core/auth/admin-auth.service';
       <button mat-icon-button type="button" (click)="menuClick.emit()">
         <mat-icon>menu</mat-icon>
       </button>
-      <span class="title">Education FR — Admin</span>
+      <span class="title">DELFy — Admin</span>
       <span class="spacer"></span>
       @if (auth.user(); as u) {
         <span class="email">{{ u.email }}</span>
