@@ -6,6 +6,7 @@ export interface AdminStats {
   totalStories: number;
   unreadMessages: number;
   multiplayerRooms: number;
+  totalSchools: number;
   usersByLevel: Record<string, number>;
   lessonsByCategory: Record<string, number>;
 }

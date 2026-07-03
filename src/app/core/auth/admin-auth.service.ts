@@ -49,6 +49,33 @@ export class AdminAuthService {
     return this.userSignal()?.role === 'admin';
   }
 
+  isSchool(): boolean {
+    return this.userSignal()?.role === 'school';
+  }
+
+  isProf(): boolean {
+    return this.userSignal()?.role === 'prof';
+  }
+
+  async changePassword(oldPassword: string, newPassword: string): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post(`${environment.apiUrl}/auth/change-password`, {
+          oldPassword,
+          newPassword,
+        })
+      );
+      const user = this.userSignal();
+      if (user) {
+        const updatedUser = { ...user, mustChangePassword: false };
+        this.userSignal.set(updatedUser);
+        localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+      }
+    } catch (e: unknown) {
+      throw parseHttpError(e);
+    }
+  }
+
   /**
    * Creates the first admin account via POST /admin/setup.
    * Only works when no admin exists yet.
@@ -84,14 +111,31 @@ export class AdminAuthService {
           password,
         }),
       );
-      if (res.user.role !== 'admin') {
-        throw new Error('Accès réservé aux administrateurs');
+      
+      const role = res.role;
+      if (role !== 'admin' && role !== 'school' && role !== 'prof') {
+        throw new Error('Accès non autorisé au panel d\'administration');
       }
+      
+      const accountData: UserOut = role === 'school' && res.school 
+        ? { 
+            id: res.school.id, 
+            email: res.school.email, 
+            name: res.school.name,
+            firstName: res.school.name,
+            lastName: '',
+            role: 'school', 
+            isActive: res.school.isActive, 
+            mustChangePassword: res.school.mustChangePassword,
+            createdAt: res.school.createdAt 
+          }
+        : res.user!;
+
       localStorage.setItem(TOKEN_KEY, res.access_token);
-      localStorage.setItem(USER_KEY, JSON.stringify(res.user));
-      this.userSignal.set(res.user);
+      localStorage.setItem(USER_KEY, JSON.stringify(accountData));
+      this.userSignal.set(accountData);
     } catch (e: unknown) {
-      if (e instanceof Error && e.message === 'Accès réservé aux administrateurs') throw e;
+      if (e instanceof Error && e.message === 'Accès non autorisé au panel d\'administration') throw e;
       throw parseHttpError(e);
     }
   }

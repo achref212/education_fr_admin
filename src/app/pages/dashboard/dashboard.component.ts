@@ -37,7 +37,7 @@ const CHART_COLORS = ['#6366f1','#ec4899','#10b981','#f59e0b','#06b6d4','#a855f7
 })
 export class DashboardComponent implements OnInit {
   private readonly api   = inject(ApiService);
-  private readonly auth  = inject(AdminAuthService);
+  readonly auth  = inject(AdminAuthService);
   private readonly theme = inject(ThemeService);
 
   readonly loading = signal(true);
@@ -46,7 +46,9 @@ export class DashboardComponent implements OnInit {
 
   get userName(): string {
     const u = this.auth.user();
-    return u ? u.firstName : 'Admin';
+    if (!u) return 'Utilisateur';
+    if (u.role === 'school') return u.name || 'École';
+    return `${u.firstName} ${u.lastName}`;
   }
 
   readonly modules: ModuleCard[] = [
@@ -103,6 +105,30 @@ export class DashboardComponent implements OnInit {
     { label: 'Multijoueur',    icon: 'groups',        route: '/multiplayer',      gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
   ];
 
+  get filteredModules(): ModuleCard[] {
+    const role = this.auth.user()?.role;
+    if (role === 'admin') return this.modules;
+    if (role === 'school') {
+      return this.modules.filter(m => ['Utilisateurs'].includes(m.label));
+    }
+    if (role === 'prof') {
+      return this.modules.filter(m => ['Utilisateurs', 'Leçons', 'Multijoueur'].includes(m.label));
+    }
+    return [];
+  }
+
+  get filteredQuickActions(): QuickAction[] {
+    const role = this.auth.user()?.role;
+    if (role === 'admin') return this.quickActions;
+    if (role === 'school') {
+      return this.quickActions.filter(q => ['Utilisateurs'].includes(q.label));
+    }
+    if (role === 'prof') {
+      return this.quickActions.filter(q => ['Utilisateurs', 'Leçons', 'Multijoueur'].includes(q.label));
+    }
+    return [];
+  }
+
   usersByLevelChart: ChartConfiguration<'bar'> = {
     type: 'bar',
     data: { labels: [], datasets: [] },
@@ -128,6 +154,17 @@ export class DashboardComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    if (!this.auth.isAdmin()) {
+      // Pour les écoles et professeurs, on masque les stats complexes pour l'instant
+      this.stats.set({
+        totalUsers: 0, activeUsers: 0, totalLessons: 0, totalQuizQuestions: 0,
+        totalStories: 0, unreadMessages: 0, multiplayerRooms: 0, totalSchools: 0,
+        usersByLevel: {}, lessonsByCategory: {}
+      });
+      this.loading.set(false);
+      return;
+    }
+    
     try {
       const s = await this.api.get<AdminStats>('/admin/stats');
       this.stats.set(s);

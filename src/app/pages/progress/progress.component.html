@@ -40,9 +40,9 @@
             <td>
               <div class="cell-primary">
                 <div class="cell-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">
-                  {{ row.user.firstName[0] }}{{ row.user.lastName[0] }}
+                  {{ (row.user.firstName || '')[0] || '?' }}{{ (row.user.lastName || '')[0] || '' }}
                 </div>
-                {{ row.user.firstName }} {{ row.user.lastName }}
+                {{ row.user.firstName || '' }} {{ row.user.lastName || '' }}
               </div>
             </td>
             <td class="cell-muted">{{ row.user.email }}</td>

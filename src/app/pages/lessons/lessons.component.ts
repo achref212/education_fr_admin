@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { LessonOut } from '../../core/models/lesson.model';
 import { ApiService } from '../../core/http/api.service';
+import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { LessonFormDialogComponent } from './lesson-form.dialog';
 import { DetailDialogComponent, DetailDialogData } from '../../shared/detail-dialog/detail-dialog.component';
@@ -34,6 +35,7 @@ const CAT_BADGE: Record<string, string> = {
 })
 export class LessonsComponent implements OnInit {
   private readonly api    = inject(ApiService);
+  private readonly auth   = inject(AdminAuthService);
   private readonly dialog = inject(MatDialog);
 
   readonly loading  = signal(true);
@@ -49,10 +51,19 @@ export class LessonsComponent implements OnInit {
 
   async ngOnInit(): Promise<void> { await this.reload(); }
 
+  get canEdit(): boolean {
+    return this.auth.user()?.role === 'admin';
+  }
+
+  get canDelete(): boolean {
+    return this.auth.user()?.role === 'admin';
+  }
+
   async reload(): Promise<void> {
     this.loading.set(true);
     try {
-      const list = await this.api.get<LessonOut[]>('/admin/lessons');
+      const endpoint = this.auth.user()?.role === 'prof' ? '/prof/lessons' : '/admin/lessons';
+      const list = await this.api.get<LessonOut[]>(endpoint);
       this.lessons.set(list);
       this.applyFilter();
     } finally {

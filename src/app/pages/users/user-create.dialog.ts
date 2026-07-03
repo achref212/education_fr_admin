@@ -13,6 +13,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { AdminUserOut } from '../../core/models/user.model';
 import { ApiService } from '../../core/http/api.service';
 import { LEVELS } from '../../core/constants/form-options';
@@ -73,54 +74,65 @@ import { LEVELS } from '../../core/constants/form-options';
           </mat-form-field>
 
           <!-- password -->
-          <mat-form-field appearance="outline" class="fd-full">
-            <mat-label>Mot de passe</mat-label>
-            <mat-icon matPrefix>lock</mat-icon>
-            <input matInput [type]="showPwd ? 'text' : 'password'"
-                   formControlName="password" />
-            <button matSuffix mat-icon-button type="button"
-                    (click)="showPwd = !showPwd">
-              <mat-icon>{{ showPwd ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            <mat-hint>Minimum 6 caractères</mat-hint>
-          </mat-form-field>
+          @if (!isSchool) {
+            <mat-form-field appearance="outline" class="fd-full">
+              <mat-label>Mot de passe</mat-label>
+              <mat-icon matPrefix>lock</mat-icon>
+              <input matInput [type]="showPwd ? 'text' : 'password'"
+                     formControlName="password" />
+              <button matSuffix mat-icon-button type="button"
+                      (click)="showPwd = !showPwd">
+                <mat-icon>{{ showPwd ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-hint>Minimum 6 caractères</mat-hint>
+            </mat-form-field>
+          }
 
           <!-- level -->
-          <mat-form-field appearance="outline" class="fd-full">
-            <mat-label>Niveau scolaire</mat-label>
-            <mat-icon matPrefix>school</mat-icon>
-            <mat-select formControlName="level">
-              @for (lvl of levels; track lvl) {
-                <mat-option [value]="lvl">{{ lvl }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+          @if (!isSchool) {
+            <mat-form-field appearance="outline" class="fd-full">
+              <mat-label>Niveau scolaire</mat-label>
+              <mat-icon matPrefix>school</mat-icon>
+              <mat-select formControlName="level">
+                @for (lvl of levels; track lvl) {
+                  <mat-option [value]="lvl">{{ lvl }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
 
           <!-- role radio -->
-          <div class="fd-radio-group">
-            <span class="fd-radio-label">
-              <mat-icon>admin_panel_settings</mat-icon>
-              Rôle du compte
-            </span>
-            <mat-radio-group formControlName="role" class="fd-radios">
-              <label class="fd-radio-card" [class.selected]="form.get('role')?.value === 'user'">
-                <mat-radio-button value="user" color="primary"></mat-radio-button>
-                <div class="fd-radio-info">
-                  <mat-icon class="fd-radio-icon" style="color:#06b6d4">person</mat-icon>
-                  <span class="fd-radio-name">Utilisateur</span>
-                  <span class="fd-radio-desc">Accès élève — apprend sur la plateforme</span>
-                </div>
-              </label>
-              <label class="fd-radio-card" [class.selected]="form.get('role')?.value === 'admin'">
-                <mat-radio-button value="admin" color="primary"></mat-radio-button>
-                <div class="fd-radio-info">
-                  <mat-icon class="fd-radio-icon" style="color:#a855f7">shield</mat-icon>
-                  <span class="fd-radio-name">Administrateur</span>
-                  <span class="fd-radio-desc">Accès complet au tableau de bord</span>
-                </div>
-              </label>
-            </mat-radio-group>
-          </div>
+          @if (!isSchool) {
+            <div class="fd-radio-group">
+              <span class="fd-radio-label">
+                <mat-icon>admin_panel_settings</mat-icon>
+                Rôle du compte
+              </span>
+              <mat-radio-group formControlName="role" class="fd-radios">
+                <label class="fd-radio-card" [class.selected]="form.get('role')?.value === 'user'">
+                  <mat-radio-button value="user" color="primary"></mat-radio-button>
+                  <div class="fd-radio-info">
+                    <mat-icon class="fd-radio-icon" style="color:#06b6d4">person</mat-icon>
+                    <span class="fd-radio-name">Utilisateur</span>
+                    <span class="fd-radio-desc">Accès élève — apprend sur la plateforme</span>
+                  </div>
+                </label>
+                <label class="fd-radio-card" [class.selected]="form.get('role')?.value === 'admin'">
+                  <mat-radio-button value="admin" color="primary"></mat-radio-button>
+                  <div class="fd-radio-info">
+                    <mat-icon class="fd-radio-icon" style="color:#a855f7">shield</mat-icon>
+                    <span class="fd-radio-name">Administrateur</span>
+                    <span class="fd-radio-desc">Accès complet au tableau de bord</span>
+                  </div>
+                </label>
+              </mat-radio-group>
+            </div>
+          } @else {
+            <div class="fd-alert" style="margin-top:16px; font-size: 13px; color: var(--text-muted);">
+              <mat-icon style="font-size:18px;width:18px;height:18px;vertical-align:middle;margin-right:4px;">info</mat-icon>
+              Un e-mail contenant le mot de passe généré sera envoyé au professeur.
+            </div>
+          }
 
           @if (error) {
             <div class="fd-error">
@@ -149,8 +161,12 @@ import { LEVELS } from '../../core/constants/form-options';
 })
 export class UserCreateDialogComponent {
   private readonly api = inject(ApiService);
-  private readonly fb  = inject(FormBuilder);
+  private readonly auth = inject(AdminAuthService);
 
+  get isSchool(): boolean { return this.auth.isSchool(); }
+  get isAdmin(): boolean { return this.auth.isAdmin(); }
+
+  private readonly fb  = inject(FormBuilder);
   readonly levels = LEVELS;
   showPwd = false;
   saving  = false;
@@ -170,22 +186,36 @@ export class UserCreateDialogComponent {
   ) {}
 
   async save(): Promise<void> {
-    if (this.form.invalid) return;
+    if (this.isSchool) {
+      this.form.get('password')?.disable();
+      this.form.get('level')?.disable();
+      this.form.get('role')?.disable();
+    }
+    if (this.form.invalid && !this.isSchool) return;
+    
     this.saving = true;
     this.error  = '';
     try {
       const v = this.form.getRawValue();
-      await this.api.post<AdminUserOut>('/admin/users', {
-        firstName: v.firstName,
-        lastName:  v.lastName,
-        email:     v.email,
-        password:  v.password,
-        level:     v.level,
-        role:      v.role,
-      });
+      if (this.isSchool) {
+        await this.api.post<any>('/school/professors', {
+          firstName: v.firstName,
+          lastName:  v.lastName,
+          email:     v.email,
+        });
+      } else {
+        await this.api.post<AdminUserOut>('/admin/users', {
+          firstName: v.firstName,
+          lastName:  v.lastName,
+          email:     v.email,
+          password:  v.password,
+          level:     v.level,
+          role:      v.role,
+        });
+      }
       this.dialogRef.close(true);
-    } catch {
-      this.error = 'Erreur lors de la création. Vérifiez les données.';
+    } catch (e: any) {
+      this.error = e.message || 'Erreur lors de la création. Vérifiez les données.';
     } finally {
       this.saving = false;
     }

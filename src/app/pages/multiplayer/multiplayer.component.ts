@@ -6,6 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { MultiplayerRoomOut } from '../../core/models/room.model';
 import { ApiService } from '../../core/http/api.service';
+import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { DetailDialogComponent, DetailDialogData } from '../../shared/detail-dialog/detail-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -18,6 +19,7 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class MultiplayerComponent implements OnInit {
   private readonly api    = inject(ApiService);
+  private readonly auth   = inject(AdminAuthService);
   private readonly dialog = inject(MatDialog);
 
   readonly loading  = signal(true);
@@ -34,7 +36,8 @@ export class MultiplayerComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.loading.set(true);
     try {
-      const list = await this.api.get<MultiplayerRoomOut[]>('/admin/multiplayer-rooms');
+      const endpoint = this.auth.user()?.role === 'prof' ? '/prof/multiplayer-rooms' : '/admin/multiplayer-rooms';
+      const list = await this.api.get<MultiplayerRoomOut[]>(endpoint);
       this.rooms.set(list);
       this.applyFilter();
     } finally { this.loading.set(false); }

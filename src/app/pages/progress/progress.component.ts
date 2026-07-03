@@ -60,14 +60,14 @@ export class ProgressComponent implements OnInit {
     const completed = row.progress.lessonsCompleted ?? [];
     const quizKeys  = Object.keys(row.progress.quizScores ?? {});
     const data: DetailDialogData = {
-      title: `${row.user.firstName} ${row.user.lastName}`,
+      title: `${row.user.firstName || ''} ${row.user.lastName || ''}`,
       subtitle: row.user.email,
       icon: 'trending_up',
       gradient: 'linear-gradient(135deg,#10b981,#06b6d4)',
       fields: [
-        { label: 'Nom complet',    value: `${row.user.firstName} ${row.user.lastName}` },
+        { label: 'Nom complet',    value: `${row.user.firstName || ''} ${row.user.lastName || ''}` },
         { label: 'E-mail',         value: row.user.email },
-        { label: 'Niveau',         value: row.user.level, type: 'code' },
+        { label: 'Niveau',         value: row.user.level || '-', type: 'code' },
         { label: 'Leçons faites',  value: String(completed.length) },
         { label: 'Quiz faits',     value: String(quizKeys.length) },
         { label: 'Score moyen',    value: this.avgScore(row) !== null ? `${this.avgScore(row)}%` : '—' },

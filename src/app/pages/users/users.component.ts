@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AdminUserOut } from '../../core/models/user.model';
 import { ApiService } from '../../core/http/api.service';
+import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { UserEditDialogComponent } from './user-edit.dialog';
 import { UserCreateDialogComponent } from './user-create.dialog';
@@ -31,6 +32,7 @@ const AVATAR_COLORS = [
 })
 export class UsersComponent implements OnInit {
   private readonly api    = inject(ApiService);
+  private readonly auth   = inject(AdminAuthService);
   private readonly dialog = inject(MatDialog);
 
   readonly loading  = signal(true);
@@ -48,10 +50,33 @@ export class UsersComponent implements OnInit {
 
   async ngOnInit(): Promise<void> { await this.reload(); }
 
+  get canCreate(): boolean {
+    const role = this.auth.user()?.role;
+    return role === 'admin' || role === 'school';
+  }
+
+  get canEdit(): boolean {
+    return this.auth.user()?.role === 'admin';
+  }
+
+  get canDelete(): boolean {
+    return this.auth.user()?.role === 'admin';
+  }
+
   async reload(): Promise<void> {
     this.loading.set(true);
     try {
-      const list = await this.api.get<AdminUserOut[]>('/admin/users');
+      const role = this.auth.user()?.role;
+      let list: AdminUserOut[] = [];
+      if (role === 'admin') {
+        list = await this.api.get<AdminUserOut[]>('/admin/users');
+      } else if (role === 'school') {
+        const students = await this.api.get<AdminUserOut[]>('/school/students');
+        const profs = await this.api.get<AdminUserOut[]>('/school/professors');
+        list = [...students, ...profs];
+      } else if (role === 'prof') {
+        list = await this.api.get<AdminUserOut[]>('/prof/students');
+      }
       this.users.set(list);
       this.applyFilter();
     } finally { this.loading.set(false); }
@@ -62,8 +87,8 @@ export class UsersComponent implements OnInit {
     this.filtered.set(q
       ? this.users().filter(u =>
           u.email.toLowerCase().includes(q) ||
-          u.firstName.toLowerCase().includes(q) ||
-          u.lastName.toLowerCase().includes(q))
+          (u.firstName || '').toLowerCase().includes(q) ||
+          (u.lastName || '').toLowerCase().includes(q))
       : [...this.users()]);
     this.pageIndex = 0;
   }
@@ -71,20 +96,21 @@ export class UsersComponent implements OnInit {
   setPage(p: number): void { this.pageIndex = p; }
   pages(): number[] { return Array.from({ length: this.totalPages() }, (_, i) => i); }
 
-  avatarColor(name: string): string {
+  avatarColor(name: string | undefined): string {
+    if (!name) return AVATAR_COLORS[0];
     return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
   }
 
   openDetail(u: AdminUserOut): void {
     const data: DetailDialogData = {
-      title: `${u.firstName} ${u.lastName}`,
+      title: u.name ? u.name : `${u.firstName || ''} ${u.lastName || ''}`,
       subtitle: u.email,
       icon: 'person',
-      gradient: this.avatarColor(u.firstName),
+      gradient: this.avatarColor(u.firstName || u.name),
       fields: [
-        { label: 'Nom complet',  value: `${u.firstName} ${u.lastName}` },
+        { label: 'Nom',  value: u.name ? u.name : `${u.firstName || ''} ${u.lastName || ''}` },
         { label: 'E-mail',       value: u.email },
-        { label: 'Niveau',       value: u.level,  type: 'code' },
+        { label: 'Niveau',       value: u.level || '-',  type: 'code' },
         { label: 'Rôle',         value: u.role,   type: 'badge',
           badgeClass: u.role === 'admin' ? 'badge-admin' : 'badge-user' },
         { label: 'Statut',       value: u.isActive ? 'Actif' : 'Inactif', type: 'badge',
@@ -109,7 +135,7 @@ export class UsersComponent implements OnInit {
   async confirmDelete(user: AdminUserOut): Promise<void> {
     const data: ConfirmDialogData = {
       title: 'Supprimer l\'utilisateur',
-      message: `Supprimer définitivement ${user.firstName} ${user.lastName} ?`,
+      message: `Supprimer définitivement ${user.name ? user.name : (user.firstName + ' ' + user.lastName)} ?`,
     };
     const ok = await firstValueFrom(
       this.dialog.open(ConfirmDialogComponent, { data, width: '380px' }).afterClosed()

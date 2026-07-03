@@ -4,9 +4,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { ThemeService } from '../../core/theme/theme.service';
+import { ChangePasswordDialogComponent } from '../../shared/change-password-dialog/change-password-dialog.component';
 
 interface NavItem {
   label: string;
@@ -18,7 +20,7 @@ interface NavItem {
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [MatIconModule, RouterLink, RouterLinkActive, RouterOutlet, MatDialogModule],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
   animations: [
@@ -36,6 +38,7 @@ interface NavItem {
 export class MainLayoutComponent implements OnInit, OnDestroy {
   private readonly auth   = inject(AdminAuthService);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   readonly theme = inject(ThemeService);
   private _sub?: Subscription;
 
@@ -44,9 +47,36 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   currentTime = '';
   private _timer?: ReturnType<typeof setInterval>;
 
+  get filteredNav(): NavItem[] {
+    const role = this.auth.user()?.role;
+    if (role === 'admin') {
+      return this.nav;
+    }
+    if (role === 'school') {
+      return this.nav.filter(n => ['Tableau de bord', 'Utilisateurs'].includes(n.label));
+    }
+    if (role === 'prof') {
+      return this.nav.filter(n => ['Tableau de bord', 'Utilisateurs', 'Leçons', 'Multijoueur'].includes(n.label));
+    }
+    return [];
+  }
+
   get userName(): string {
     const u = this.auth.user();
-    return u ? `${u.firstName} ${u.lastName}` : 'Administrateur';
+    if (!u) return 'Utilisateur';
+    if (u.role === 'school') return u.name || 'École';
+    return `${u.firstName} ${u.lastName}`;
+  }
+
+  get userRole(): string {
+    return this.auth.user()?.role || 'admin';
+  }
+
+  get displayRole(): string {
+    const role = this.auth.user()?.role;
+    if (role === 'school') return 'Établissement';
+    if (role === 'prof') return 'Professeur';
+    return 'Administrateur';
   }
 
   readonly nav: NavItem[] = [
@@ -68,6 +98,13 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe(() => this._syncTitle());
     this._syncTitle();
+
+    if (this.auth.user()?.mustChangePassword) {
+      this.dialog.open(ChangePasswordDialogComponent, {
+        disableClose: true,
+        width: '400px',
+      });
+    }
   }
 
   ngOnDestroy(): void {

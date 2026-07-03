@@ -8,9 +8,11 @@
     <p class="ph-sub">Gérez les comptes élèves et administrateurs — modifiez rôles, niveaux et statuts</p>
   </div>
   <div class="ph-actions">
-    <button class="btn-add" (click)="openCreate()">
-      <mat-icon>person_add</mat-icon> Nouvel utilisateur
-    </button>
+    @if (canCreate) {
+      <button class="btn-add" (click)="openCreate()">
+        <mat-icon>person_add</mat-icon> Nouvel utilisateur
+      </button>
+    }
   </div>
 </div>
 
@@ -53,21 +55,21 @@
           <tr (click)="openDetail(u)">
             <td>
               <div class="cell-primary">
-                <div class="cell-avatar" [style.background]="avatarColor(u.firstName)">
-                  {{ u.firstName[0] }}{{ u.lastName[0] }}
+                <div class="cell-avatar" [style.background]="avatarColor(u.firstName || u.name)">
+                  {{ (u.firstName || u.name || '?')[0] }}{{ (u.lastName || '')[0] || '' }}
                 </div>
                 <div>
-                  <div>{{ u.firstName }} {{ u.lastName }}</div>
+                  <div>{{ u.name ? u.name : ((u.firstName || '') + ' ' + (u.lastName || '')) }}</div>
                   <div class="cell-muted">ID: {{ u.id | slice:0:8 }}…</div>
                 </div>
               </div>
             </td>
             <td>{{ u.email }}</td>
-            <td><span class="cell-code">{{ u.level }}</span></td>
+            <td><span class="cell-code">{{ u.level || '-' }}</span></td>
             <td>
               <span class="badge" [class.badge-admin]="u.role==='admin'" [class.badge-user]="u.role==='user'">
                 <mat-icon style="font-size:12px;width:12px;height:12px">
-                  {{ u.role === 'admin' ? 'admin_panel_settings' : 'person' }}
+                  {{ u.role === 'admin' ? 'admin_panel_settings' : u.role === 'prof' ? 'school' : 'person' }}
                 </mat-icon>
                 {{ u.role }}
               </span>
@@ -80,12 +82,16 @@
             <td class="cell-muted">{{ u.createdAt | date:'dd/MM/yyyy' }}</td>
             <td>
               <div class="actions-cell">
-                <button class="action-btn edit" (click)="openEdit(u); $event.stopPropagation()" title="Modifier">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button class="action-btn del" (click)="confirmDelete(u); $event.stopPropagation()" title="Supprimer">
-                  <mat-icon>delete_outline</mat-icon>
-                </button>
+                @if (canEdit) {
+                  <button class="action-btn edit" (click)="openEdit(u); $event.stopPropagation()" title="Modifier">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                }
+                @if (canDelete) {
+                  <button class="action-btn del" (click)="confirmDelete(u); $event.stopPropagation()" title="Supprimer">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                }
               </div>
             </td>
           </tr>

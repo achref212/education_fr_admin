@@ -61,8 +61,12 @@
             <td class="cell-muted"><span class="cell-truncate">{{ l.content }}</span></td>
             <td>
               <div class="actions-cell">
-                <button class="action-btn edit" (click)="openEdit(l); $event.stopPropagation()"><mat-icon>edit</mat-icon></button>
-                <button class="action-btn del"  (click)="confirmDelete(l); $event.stopPropagation()"><mat-icon>delete_outline</mat-icon></button>
+                @if (canEdit) {
+                  <button class="action-btn edit" (click)="openEdit(l); $event.stopPropagation()"><mat-icon>edit</mat-icon></button>
+                }
+                @if (canDelete) {
+                  <button class="action-btn del"  (click)="confirmDelete(l); $event.stopPropagation()"><mat-icon>delete_outline</mat-icon></button>
+                }
               </div>
             </td>
           </tr>

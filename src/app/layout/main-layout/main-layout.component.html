@@ -11,7 +11,7 @@
       @if (!sidebarCollapsed) {
         <div class="brand-text" @fadeLabel>
           <span class="brand-name">DELFy</span>
-          <span class="brand-role">Administration</span>
+          <span class="brand-role">{{ displayRole }}</span>
         </div>
       }
       <button class="collapse-btn" (click)="toggleSidebar()">
@@ -23,11 +23,11 @@
     @if (!sidebarCollapsed) {
       <div class="sidebar-user" @fadeLabel>
         <div class="user-avatar">
-          <mat-icon>admin_panel_settings</mat-icon>
+          <mat-icon>{{ userRole === 'admin' ? 'admin_panel_settings' : userRole === 'school' ? 'school' : 'person' }}</mat-icon>
         </div>
         <div class="user-info">
           <span class="user-name">{{ userName }}</span>
-          <span class="user-badge">Admin</span>
+          <span class="user-badge">{{ displayRole }}</span>
         </div>
       </div>
     }
@@ -36,7 +36,7 @@
 
     <!-- navigation -->
     <nav class="sidebar-nav">
-      @for (item of nav; track item.path) {
+      @for (item of filteredNav; track item.path) {
         <a class="nav-item"
            [routerLink]="item.path"
            routerLinkActive="active"

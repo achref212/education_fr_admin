@@ -10,7 +10,7 @@
   </div>
   <div class="wb-badge">
     <img src="icon.png" alt="" class="wb-badge-logo" />
-    Administrateur
+    {{ auth.user()?.role === 'school' ? 'Établissement' : auth.user()?.role === 'prof' ? 'Professeur' : 'Administrateur' }}
   </div>
 </div>
 
@@ -30,69 +30,71 @@
   } @else {
     @if (stats(); as s) {
 
-      <!-- KPI grid -->
-      <div class="kpi-grid">
-        @for (card of kpiCards(s); track card.label; let i = $index) {
-          <app-stat-card
-            [label]="card.label"
-            [value]="card.value"
-            [hint]="card.hint ?? ''"
-            [style.animation-delay]="(i * 80) + 'ms'"
-          />
-        }
-      </div>
-
-      <!-- charts row -->
-      <div class="charts-row">
-
-        <div class="chart-card anim-fade-up" style="animation-delay:200ms">
-          <div class="chart-header">
-            <div class="chart-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-              <mat-icon>bar_chart</mat-icon>
-            </div>
-            <div>
-              <h3>Utilisateurs par niveau</h3>
-              <p>Distribution des apprenants</p>
-            </div>
-          </div>
-          <div class="chart-body">
-            <canvas
-              baseChart
-              [type]="usersByLevelChart.type"
-              [data]="usersByLevelChart.data"
-              [options]="usersByLevelChart.options">
-            </canvas>
-          </div>
+      @if (auth.isAdmin()) {
+        <!-- KPI grid -->
+        <div class="kpi-grid">
+          @for (card of kpiCards(s); track card.label; let i = $index) {
+            <app-stat-card
+              [label]="card.label"
+              [value]="card.value"
+              [hint]="card.hint ?? ''"
+              [style.animation-delay]="(i * 80) + 'ms'"
+            />
+          }
         </div>
 
-        <div class="chart-card anim-fade-up" style="animation-delay:320ms">
-          <div class="chart-header">
-            <div class="chart-icon" style="background:linear-gradient(135deg,#ec4899,#f97316)">
-              <mat-icon>donut_large</mat-icon>
-            </div>
-            <div>
-              <h3>Leçons par catégorie</h3>
-              <p>Répartition du contenu</p>
-            </div>
-          </div>
-          <div class="chart-body chart-body--donut">
-            <canvas
-              baseChart
-              [type]="lessonsByCategoryChart.type"
-              [data]="lessonsByCategoryChart.data"
-              [options]="lessonsByCategoryChart.options">
-            </canvas>
-          </div>
-        </div>
+        <!-- charts row -->
+        <div class="charts-row">
 
-      </div><!-- charts-row -->
+          <div class="chart-card anim-fade-up" style="animation-delay:200ms">
+            <div class="chart-header">
+              <div class="chart-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                <mat-icon>bar_chart</mat-icon>
+              </div>
+              <div>
+                <h3>Utilisateurs par niveau</h3>
+                <p>Distribution des apprenants</p>
+              </div>
+            </div>
+            <div class="chart-body">
+              <canvas
+                baseChart
+                [type]="usersByLevelChart.type"
+                [data]="usersByLevelChart.data"
+                [options]="usersByLevelChart.options">
+              </canvas>
+            </div>
+          </div>
+
+          <div class="chart-card anim-fade-up" style="animation-delay:320ms">
+            <div class="chart-header">
+              <div class="chart-icon" style="background:linear-gradient(135deg,#ec4899,#f97316)">
+                <mat-icon>donut_large</mat-icon>
+              </div>
+              <div>
+                <h3>Leçons par catégorie</h3>
+                <p>Répartition du contenu</p>
+              </div>
+            </div>
+            <div class="chart-body chart-body--donut">
+              <canvas
+                baseChart
+                [type]="lessonsByCategoryChart.type"
+                [data]="lessonsByCategoryChart.data"
+                [options]="lessonsByCategoryChart.options">
+              </canvas>
+            </div>
+          </div>
+
+        </div><!-- charts-row -->
+      }
 
       <!-- modules description grid -->
       <div class="modules-section anim-fade-up" style="animation-delay:400ms">
         <h2 class="section-title">Modules de gestion</h2>
         <p class="section-sub">Cliquez sur un module pour gérer son contenu</p>
         <div class="modules-grid">
-          @for (m of modules; track m.label; let i = $index) {
+          @for (m of filteredModules; track m.label; let i = $index) {
             <a class="module-card" [routerLink]="m.route"
                [style.animation-delay]="(400 + i * 60) + 'ms'">
               <div class="mc-top">
