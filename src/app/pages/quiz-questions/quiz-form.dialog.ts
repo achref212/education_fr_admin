@@ -172,7 +172,7 @@ export class QuizFormDialogComponent {
   form = this.fb.nonNullable.group({
     question:    ['', Validators.required],
     category:    [QUIZ_CATEGORIES[0], Validators.required],
-    level:       [LEVELS[1], Validators.required],
+    level:       [LEVELS[0], Validators.required],
     explanation: [''],
   });
 
@@ -202,23 +202,27 @@ export class QuizFormDialogComponent {
 
   async save(): Promise<void> {
     if (this.form.invalid) return;
-    const opts = this.options().map(o => o.trim()).filter(o => o.length > 0);
+    const rawOptions = this.options().map((o) => o.trim());
+    const opts = rawOptions.filter((o) => o.length > 0);
     if (opts.length < 2) {
       this.optionError = 'Saisissez au moins 2 options de réponse.';
       return;
     }
-    if (this.correctIndex() >= opts.length) {
-      this.optionError = 'La réponse correcte doit correspondre à une option valide.';
+    const selectedRaw = rawOptions[this.correctIndex()] ?? '';
+    let correctIndex = selectedRaw ? opts.indexOf(selectedRaw) : -1;
+    if (correctIndex < 0) {
+      this.optionError = 'Sélectionnez une réponse correcte parmi les options remplies.';
       return;
     }
     this.saving = true;
     this.error  = '';
+    this.optionError = '';
     try {
       const v = this.form.getRawValue();
       const payload = {
         question:     v.question,
         options:      opts,
-        correctIndex: this.correctIndex(),
+        correctIndex,
         explanation:  v.explanation || null,
         category:     v.category,
         level:        v.level,

@@ -1,0 +1,144 @@
+@import '../../../styles/preview-tokens';
+
+.screen {
+  @include preview-screen-base;
+  padding: 12px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &--light { @include preview-theme-vars(light); }
+  &--dark { @include preview-theme-vars(dark); }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: var(--pv-surface);
+  color: var(--pv-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.progress-wrap {
+  flex: 1;
+}
+
+.progress-bar {
+  height: 6px;
+  background: var(--pv-surface);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--pv-primary);
+  border-radius: 99px;
+}
+
+.progress-label {
+  font-size: 11px;
+  color: var(--pv-text-muted);
+}
+
+.category-pill {
+  align-self: flex-start;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--pv-surface-primary);
+  color: var(--pv-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.question-block {
+  h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 8px 0;
+    color: var(--pv-text);
+  }
+}
+
+.q-number {
+  font-size: 11px;
+  color: var(--pv-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.q-text {
+  font-size: 15px;
+  font-style: italic;
+  color: var(--pv-text-muted);
+  margin: 0;
+  padding: 12px;
+  background: var(--pv-surface);
+  border-radius: 12px;
+  border-left: 3px solid var(--pv-primary);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.option {
+  @include preview-card;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--pv-text);
+  transition: border-color 0.2s;
+
+  &--selected {
+    border-color: var(--pv-primary);
+    background: var(--pv-surface-primary);
+  }
+}
+
+.option-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--pv-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--pv-primary);
+}
+
+.option--selected .option-letter {
+  background: var(--pv-primary);
+  color: var(--pv-on-primary);
+}
+
+.cta {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: var(--pv-primary);
+  color: var(--pv-on-primary);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: default;
+}

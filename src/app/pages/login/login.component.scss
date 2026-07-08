@@ -124,14 +124,18 @@
 /* glass card */
 .glass-card {
   position: relative; z-index: 1;
-  width: 100%; max-width: 440px;
+  width: 100%; max-width: 480px;
   background: rgba(30, 30, 62, 0.6);
   backdrop-filter: blur(24px);
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 24px;
-  padding: 12px 12px 36px;
+  padding: 18px 24px 36px;
   box-shadow: 0 32px 64px rgba(0,0,0,.5), 0 0 0 1px rgba(99,102,241,.1);
   animation: scaleIn .5s ease both;
+  overflow: visible;
+  box-sizing: border-box;
+
+  &.register-mode { max-width: 520px; }
 }
 
 /* tab bar */
@@ -142,6 +146,7 @@
   border-radius: 14px;
   padding: 4px;
   margin-bottom: 32px;
+  margin-top: 10px;
   gap: 0;
 }
 .tab {
@@ -170,7 +175,21 @@
 }
 
 /* form sections */
-.form-section { padding: 0 20px; }
+.form-section { 
+  padding: 0 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.loading-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 220px;
+  color: rgba(255,255,255,.45);
+}
 
 .form-header {
   margin-bottom: 28px;
@@ -178,25 +197,69 @@
   p  { margin: 0; color: rgba(255,255,255,.45); font-size: 14px; }
 }
 
+/* stacked form layout */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
 /* field wrapper with leading icon */
 .field-group {
   position: relative;
+  width: 100%;
   .field-icon {
     position: absolute; left: 14px; top: 26px;
     font-size: 20px; color: rgba(255,255,255,.3); z-index: 2;
     pointer-events: none;
   }
-  mat-form-field { padding-left: 36px; }
+  mat-form-field { padding-left: 36px; width: 100%; }
 }
 
-/* 2-column row */
+.field-block {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field-section-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.45);
+  margin-bottom: 6px;
+  padding-left: 4px;
+  white-space: nowrap;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+}
+
+.phone-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* 2-column row — names only */
 .row-2 {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-  margin-bottom: 8px;
-  mat-form-field { width: 100%; }
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.row-2 > * {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.row-2 mat-form-field {
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.w100 { width: 100%; }
+.w100 { width: 100%; box-sizing: border-box; }
 
 /* Material form field overrides */
 ::ng-deep {
@@ -308,4 +371,108 @@
   &.weak   { background: #ef4444; }
   &.medium { background: #f59e0b; }
   &.strong { background: #10b981; }
+}
+
+/* forgot password */
+.forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 8px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a78bfa;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  &:hover { color: #c4b5fd; }
+  &.center {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 12px;
+  }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  cursor: pointer;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { color: rgba(255,255,255,.85); }
+}
+
+.forgot-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 24px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: .35;
+  transition: opacity .3s ease;
+  &.active, &.done { opacity: 1; }
+}
+
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.6);
+  .step.active & {
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    border-color: transparent;
+    color: white;
+  }
+  .step.done & {
+    background: rgba(16,185,129,.2);
+    border-color: rgba(16,185,129,.4);
+    color: #6ee7b7;
+  }
+}
+
+.step-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: rgba(255,255,255,.45);
+  white-space: nowrap;
+  .step.active & { color: rgba(255,255,255,.75); }
+}
+
+.step-line {
+  flex: 1;
+  max-width: 40px;
+  height: 2px;
+  margin: 0 4px 18px;
+  background: rgba(255,255,255,.1);
+  transition: background .3s ease;
+  &.done { background: rgba(16,185,129,.5); }
 }

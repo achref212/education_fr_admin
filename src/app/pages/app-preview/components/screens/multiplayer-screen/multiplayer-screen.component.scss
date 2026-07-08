@@ -1,0 +1,195 @@
+@import '../../../styles/preview-tokens';
+
+.screen {
+  @include preview-screen-base;
+  padding: 12px 14px 16px;
+
+  &--light { @include preview-theme-vars(light); }
+  &--dark { @include preview-theme-vars(dark); }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h1 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: var(--pv-surface);
+  color: var(--pv-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #ff2d55, #5856d6);
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #fff;
+  margin-bottom: 16px;
+
+  mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    opacity: 0.9;
+  }
+
+  strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  span {
+    font-size: 12px;
+    opacity: 0.85;
+  }
+}
+
+.join-section {
+  margin-bottom: 12px;
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pv-text-muted);
+    margin-bottom: 8px;
+  }
+}
+
+.join-row {
+  display: flex;
+  gap: 8px;
+
+  input {
+    flex: 1;
+    padding: 12px 14px;
+    border: 1px solid var(--pv-divider);
+    border-radius: 12px;
+    background: var(--pv-surface);
+    color: var(--pv-text);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+}
+
+.join-btn {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: var(--pv-primary);
+  color: var(--pv-on-primary);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.create-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed var(--pv-primary);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--pv-primary);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: default;
+  margin-bottom: 20px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.section-title {
+  @include preview-section-title;
+}
+
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.room-item {
+  @include preview-card;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.room-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    color: #a855f7;
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.room-info {
+  flex: 1;
+
+  strong {
+    display: block;
+    font-size: 13px;
+  }
+
+  span {
+    font-size: 11px;
+    color: var(--pv-text-muted);
+  }
+}
+
+.room-players {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pv-primary);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}

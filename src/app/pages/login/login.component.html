@@ -21,7 +21,7 @@
       <div class="brand-icon">
         <img src="icon.png" alt="DELFy" class="brand-logo-img" />
       </div>
-      <h1 class="brand-title">DELFy<br><span>Admin</span></h1>
+      <h1 class="brand-title">DELFy</h1>
       <p class="brand-tagline">
         Gérez votre plateforme d'apprentissage<br>du français en toute simplicité
       </p>
@@ -49,25 +49,28 @@
   <div class="form-panel">
     <div class="glass-card" [class.register-mode]="activeTab === 'register'">
 
-      <!-- tab switcher -->
-      <div class="tab-bar">
-        <button class="tab" [class.active]="activeTab === 'login'"
-                (click)="setTab('login')">
-          <mat-icon>login</mat-icon> Connexion
-        </button>
-        <button class="tab" [class.active]="activeTab === 'register'"
-                (click)="setTab('register')">
-          <mat-icon>person_add</mat-icon> Inscription
-        </button>
-        <div class="tab-slider" [class.right]="activeTab === 'register'"></div>
-      </div>
+      <!-- tab switcher (login tab hidden until first admin exists) -->
+      @if (!checkingSetup() && !setupComplete() && authView !== 'forgot') {
+        <div class="tab-bar single-tab">
+          <button class="tab active" type="button">
+            <mat-icon>person_add</mat-icon> Inscription admin
+          </button>
+        </div>
+      }
+
+      @if (checkingSetup()) {
+        <div class="form-section loading-setup">
+          <mat-spinner diameter="28"></mat-spinner>
+          <p>Chargement…</p>
+        </div>
+      }
 
       <!-- ─── LOGIN form ───────────────────────────────────────────────── -->
-      @if (activeTab === 'login') {
+      @if (!checkingSetup() && authView === 'login' && setupComplete()) {
         <div class="form-section anim-fade-up">
           <div class="form-header">
             <h2>Bon retour 👋</h2>
-            <p>Connectez-vous à votre espace admin</p>
+            <p>Connectez-vous à votre espace</p>
           </div>
 
           <form [formGroup]="loginForm" (ngSubmit)="submitLogin()">
@@ -94,6 +97,12 @@
               </mat-form-field>
             </div>
 
+            <div class="forgot-row">
+              <button type="button" class="link-btn" (click)="openForgotPassword()">
+                Mot de passe oublié ?
+              </button>
+            </div>
+
             @if (error()) {
               <div class="alert-error anim-scale-in">
                 <mat-icon>error_outline</mat-icon>
@@ -115,42 +124,19 @@
       }
 
       <!-- ─── REGISTER form ───────────────────────────────────────────── -->
-      @if (activeTab === 'register') {
-
-        <!-- ── Admin already configured state ── -->
-        @if (registerState === 'setup_done') {
-          <div class="form-section anim-fade-up">
-            <div class="setup-done-state">
-              <div class="sd-icon">
-                <mat-icon>admin_panel_settings</mat-icon>
-              </div>
-              <h3 class="sd-title">Plateforme configurée</h3>
-              <p class="sd-msg">
-                Un administrateur existe déjà sur cette plateforme.<br>
-                Connectez-vous avec votre compte admin, ou demandez à un admin
-                de créer un nouveau compte depuis la gestion des utilisateurs.
-              </p>
-              <button class="btn-primary w100" type="button" (click)="goToLogin()">
-                <mat-icon>login</mat-icon>
-                Aller à la connexion
-              </button>
-            </div>
+      @if (!checkingSetup() && authView === 'register' && !setupComplete()) {
+        <div class="form-section anim-fade-up">
+          <div class="form-header">
+            <h2>Créer un compte 🚀</h2>
+            <p>Premier compte administrateur de la plateforme</p>
           </div>
 
-        <!-- ── Registration form ── -->
-        } @else {
-          <div class="form-section anim-fade-up">
-            <div class="form-header">
-              <h2>Créer un compte 🚀</h2>
-              <p>Premier compte administrateur de la plateforme</p>
-            </div>
+          <div class="info-banner">
+            <mat-icon>info</mat-icon>
+            Disponible uniquement si aucun admin n'existe encore.
+          </div>
 
-            <div class="info-banner">
-              <mat-icon>info</mat-icon>
-              Disponible uniquement si aucun admin n'existe encore.
-            </div>
-
-            <form [formGroup]="registerForm" (ngSubmit)="submitRegister()">
+          <form [formGroup]="registerForm" (ngSubmit)="submitRegister()" class="auth-form">
               <div class="row-2">
                 <mat-form-field appearance="outline">
                   <mat-label>Prénom</mat-label>
@@ -169,6 +155,23 @@
                   <input matInput type="email" formControlName="email"
                          placeholder="admin@exemple.com" />
                 </mat-form-field>
+              </div>
+
+              <div class="field-block">
+                <mat-form-field appearance="outline" class="w100" (click)="picker.open()">
+                  <mat-label>Date de naissance</mat-label>
+                  <input matInput [matDatepicker]="picker" formControlName="dateOfBirth"
+                         [max]="maxDate" placeholder="jj/mm/aaaa" />
+                  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker panelClass="birthday-panel"></mat-datepicker>
+                </mat-form-field>
+              </div>
+
+              <div class="field-block phone-block">
+                <span class="field-section-label">
+                  <mat-icon>phone</mat-icon>Téléphone
+                </span>
+                <app-phone-input formControlName="phone"></app-phone-input>
               </div>
 
               <div class="field-group">
@@ -219,8 +222,165 @@
                 }
               </button>
             </form>
+        </div>
+      }
+
+      <!-- ─── FORGOT PASSWORD ─────────────────────────────────────────── -->
+      @if (!checkingSetup() && authView === 'forgot') {
+        <div class="form-section anim-fade-up">
+          <button type="button" class="back-link" (click)="backToLogin()">
+            <mat-icon>arrow_back</mat-icon>
+            Retour à la connexion
+          </button>
+
+          <div class="form-header">
+            <h2>Réinitialiser le mot de passe</h2>
+            <p>Étape {{ forgotStep }} sur 3</p>
           </div>
-        }
+
+          <div class="forgot-steps">
+            <div class="step" [class.active]="forgotStep >= 1" [class.done]="forgotStep > 1">
+              <span class="step-num">1</span>
+              <span class="step-label">E-mail</span>
+            </div>
+            <div class="step-line" [class.done]="forgotStep > 1"></div>
+            <div class="step" [class.active]="forgotStep >= 2" [class.done]="forgotStep > 2">
+              <span class="step-num">2</span>
+              <span class="step-label">Code</span>
+            </div>
+            <div class="step-line" [class.done]="forgotStep > 2"></div>
+            <div class="step" [class.active]="forgotStep >= 3">
+              <span class="step-num">3</span>
+              <span class="step-label">Nouveau mot de passe</span>
+            </div>
+          </div>
+
+          @if (forgotStep === 1) {
+            <form [formGroup]="forgotEmailForm" (ngSubmit)="submitForgotEmail()">
+              <div class="field-group">
+                <mat-icon class="field-icon">email</mat-icon>
+                <mat-form-field appearance="outline" class="w100">
+                  <mat-label>Adresse e-mail</mat-label>
+                  <input matInput type="email" formControlName="email"
+                         autocomplete="username" placeholder="votre@email.com" />
+                </mat-form-field>
+              </div>
+
+              @if (error()) {
+                <div class="alert-error anim-scale-in">
+                  <mat-icon>error_outline</mat-icon>
+                  {{ error() }}
+                </div>
+              }
+
+              <button class="btn-primary w100" type="submit"
+                      [disabled]="forgotEmailForm.invalid || loading()">
+                @if (loading()) {
+                  <mat-spinner diameter="22" class="inline-spinner" />
+                } @else {
+                  <mat-icon>send</mat-icon>
+                  Envoyer le code
+                }
+              </button>
+            </form>
+          }
+
+          @if (forgotStep === 2) {
+            <form [formGroup]="forgotCodeForm" (ngSubmit)="submitForgotCode()">
+              @if (success()) {
+                <div class="alert-success anim-scale-in">
+                  <mat-icon>check_circle</mat-icon>
+                  {{ success() }}
+                </div>
+              }
+
+              <div class="field-group">
+                <mat-icon class="field-icon">pin</mat-icon>
+                <mat-form-field appearance="outline" class="w100">
+                  <mat-label>Code à 6 chiffres</mat-label>
+                  <input matInput formControlName="code" maxlength="6"
+                         inputmode="numeric" placeholder="123456" />
+                  <mat-hint>Vérifiez votre boîte e-mail</mat-hint>
+                </mat-form-field>
+              </div>
+
+              @if (error()) {
+                <div class="alert-error anim-scale-in">
+                  <mat-icon>error_outline</mat-icon>
+                  {{ error() }}
+                </div>
+              }
+
+              <button class="btn-primary w100" type="submit"
+                      [disabled]="forgotCodeForm.invalid || loading()">
+                @if (loading()) {
+                  <mat-spinner diameter="22" class="inline-spinner" />
+                } @else {
+                  <mat-icon>verified</mat-icon>
+                  Vérifier le code
+                }
+              </button>
+
+              <button type="button" class="link-btn center" (click)="forgotStep = 1; error.set('')">
+                Renvoyer un code
+              </button>
+            </form>
+          }
+
+          @if (forgotStep === 3) {
+            <form [formGroup]="forgotPasswordForm" (ngSubmit)="submitForgotPassword()">
+              <div class="field-group">
+                <mat-icon class="field-icon">lock</mat-icon>
+                <mat-form-field appearance="outline" class="w100">
+                  <mat-label>Nouveau mot de passe</mat-label>
+                  <input matInput [type]="showForgotPwd ? 'text' : 'password'"
+                         formControlName="newPassword" autocomplete="new-password" />
+                  <button matSuffix mat-icon-button type="button"
+                          (click)="showForgotPwd = !showForgotPwd">
+                    <mat-icon>{{ showForgotPwd ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  <mat-hint>Minimum 6 caractères</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="field-group">
+                <mat-icon class="field-icon">lock_reset</mat-icon>
+                <mat-form-field appearance="outline" class="w100">
+                  <mat-label>Confirmer le mot de passe</mat-label>
+                  <input matInput [type]="showForgotConfirm ? 'text' : 'password'"
+                         formControlName="confirmPassword" autocomplete="new-password" />
+                  <button matSuffix mat-icon-button type="button"
+                          (click)="showForgotConfirm = !showForgotConfirm">
+                    <mat-icon>{{ showForgotConfirm ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                </mat-form-field>
+              </div>
+
+              @if (error()) {
+                <div class="alert-error anim-scale-in">
+                  <mat-icon>error_outline</mat-icon>
+                  {{ error() }}
+                </div>
+              }
+              @if (success()) {
+                <div class="alert-success anim-scale-in">
+                  <mat-icon>check_circle</mat-icon>
+                  {{ success() }}
+                </div>
+              }
+
+              <button class="btn-primary w100" type="submit"
+                      [disabled]="forgotPasswordForm.invalid || loading()">
+                @if (loading()) {
+                  <mat-spinner diameter="22" class="inline-spinner" />
+                } @else {
+                  <mat-icon>lock_reset</mat-icon>
+                  Réinitialiser le mot de passe
+                }
+              </button>
+            </form>
+          }
+        </div>
       }
 
     </div><!-- glass-card -->

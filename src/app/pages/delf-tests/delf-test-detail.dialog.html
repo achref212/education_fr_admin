@@ -1,0 +1,54 @@
+<div class="dtd-wrap">
+  <div class="dtd-header">
+    <h2><mat-icon>assignment</mat-icon> Détail du test DELF</h2>
+    <button class="dtd-close" type="button" (click)="dialogRef.close()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  @if (loading()) {
+    <div class="dtd-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+  } @else if (error()) {
+    <p class="dtd-error">{{ error() }}</p>
+  } @else {
+    @if (result(); as r) {
+      <div class="dtd-summary">
+        <div class="dtd-kpi"><span>Classe</span><strong>{{ r.classLevel }}</strong></div>
+        <div class="dtd-kpi"><span>Objectif</span><strong>{{ r.targetDelfLevel }}</strong></div>
+        <div class="dtd-kpi"><span>Atteint</span><strong>{{ r.achievedDelfLevel || '—' }}</strong></div>
+        <div class="dtd-kpi"><span>Score global</span><strong>{{ r.overallScore ?? '—' }}%</strong></div>
+      </div>
+      <p class="dtd-comparison">{{ comparisonLabel(r.comparisonToTarget) }}</p>
+
+      <div class="dtd-categories">
+        @for (cat of categoryKeys(r.categoryScores); track cat) {
+          <div class="dtd-cat">
+            <div class="dtd-cat-head">
+              <span>{{ cat }}</span>
+              <strong>{{ r.categoryScores[cat] }}%</strong>
+            </div>
+            <div class="dtd-bar"><div class="dtd-bar-fill" [style.width.%]="r.categoryScores[cat]"></div></div>
+          </div>
+        }
+      </div>
+
+      @if (r.sections && r.sections.length) {
+        <div class="dtd-sections">
+          @for (section of r.sections; track section.category) {
+            <h3>{{ section.category }} — {{ section.score }}%</h3>
+            @for (q of section.questions; track q.questionId) {
+              <div class="dtd-q" [class.dtd-q--ok]="q.isCorrect" [class.dtd-q--ko]="!q.isCorrect">
+                <div class="dtd-q-text">{{ q.question }}</div>
+                @if (q.explanation) {
+                  <div class="dtd-q-exp">{{ q.explanation }}</div>
+                }
+              </div>
+            }
+          }
+        </div>
+      }
+    }
+  }
+
+  <div class="dtd-footer">
+    <button class="spd-btn" type="button" (click)="dialogRef.close()">Fermer</button>
+  </div>
+</div>

@@ -57,6 +57,11 @@
   display: flex; align-items: center; gap: 10px;
   padding: 14px 16px; border-bottom: 1px solid var(--clr-border);
   overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background .2s ease;
+  &:hover { background: rgba(99,102,241,.08); }
 }
 .user-avatar {
   flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px;
@@ -71,7 +76,7 @@
 }
 .user-badge {
   display: inline-block; margin-top: 2px; font-size: 10px; font-weight: 700;
-  color: #a78bfa; background: rgba(99,102,241,.12); border-radius: 99px; padding: 1px 8px;
+  color: var(--clr-primary-light); background: rgba(99,102,241,.12); border-radius: 99px; padding: 1px 8px;
 }
 
 /* separator */
@@ -193,6 +198,12 @@
   width: 36px; height: 36px; border-radius: 10px;
   background: linear-gradient(135deg,#6366f1,#8b5cf6);
   display: flex; align-items: center; justify-content: center; cursor: pointer;
+  text-decoration: none;
+  transition: transform .2s ease, box-shadow .2s ease;
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(99,102,241,.4);
+  }
   mat-icon { font-size: 20px; color: white; }
 }
 

@@ -93,6 +93,14 @@ export interface UserEditData { user: AdminUserOut; }
                   <span class="fd-radio-desc">Accès complet</span>
                 </div>
               </label>
+              <label class="fd-radio-card" [class.selected]="form.get('role')?.value === 'prof'">
+                <mat-radio-button value="prof" color="primary"></mat-radio-button>
+                <div class="fd-radio-info">
+                  <mat-icon class="fd-radio-icon" style="color:#10b981">school</mat-icon>
+                  <span class="fd-radio-name">Professeur</span>
+                  <span class="fd-radio-desc">Gestion des classes et contenus</span>
+                </div>
+              </label>
             </mat-radio-group>
           </div>
 

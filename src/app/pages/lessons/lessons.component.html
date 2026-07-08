@@ -7,9 +7,11 @@
     <p class="ph-sub">Créez et éditez les leçons pédagogiques par catégorie et niveau scolaire</p>
   </div>
   <div class="ph-actions">
-    <button class="btn-add" style="background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 6px 18px rgba(16,185,129,.35)" (click)="openCreate()">
-      <mat-icon>add</mat-icon> Nouvelle leçon
-    </button>
+    @if (canEdit) {
+      <button class="btn-add" style="background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 6px 18px rgba(16,185,129,.35)" (click)="openCreate()">
+        <mat-icon>add</mat-icon> Nouvelle leçon
+      </button>
+    }
   </div>
 </div>
 
@@ -18,7 +20,7 @@
   <input placeholder="Rechercher par titre, catégorie ou niveau…"
          [(ngModel)]="searchTerm" (input)="applyFilter()" />
   @if (searchTerm) {
-    <mat-icon style="cursor:pointer;color:rgba(255,255,255,.3)" (click)="searchTerm='';applyFilter()">close</mat-icon>
+    <mat-icon class="search-clear" (click)="searchTerm='';applyFilter()">close</mat-icon>
   }
 </div>
 

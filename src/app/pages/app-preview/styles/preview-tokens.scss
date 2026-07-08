@@ -1,0 +1,61 @@
+@mixin preview-theme-vars($theme: light) {
+  @if $theme == dark {
+    --pv-primary: #007aff;
+    --pv-primary-dark: #0058b7;
+    --pv-bg: #131313;
+    --pv-surface: #262626;
+    --pv-surface-primary: #00254c;
+    --pv-text: #ffffff;
+    --pv-text-muted: #8e8e93;
+    --pv-divider: #3a3a3c;
+    --pv-error: #d53f36;
+    --pv-success: #34c759;
+    --pv-warning: #ff9500;
+    --pv-on-primary: #ffffff;
+    --pv-border: #131313;
+  } @else {
+    --pv-primary: #007aff;
+    --pv-primary-dark: #0058b7;
+    --pv-bg: #ffffff;
+    --pv-surface: #f8f8f8;
+    --pv-surface-primary: #e5f2ff;
+    --pv-text: #131313;
+    --pv-text-muted: #6c6c6c;
+    --pv-divider: #e5e5e5;
+    --pv-error: #d53f36;
+    --pv-success: #34c759;
+    --pv-warning: #ff9500;
+    --pv-on-primary: #ffffff;
+    --pv-border: #f8f8f8;
+  }
+}
+
+@mixin preview-screen-base {
+  background: var(--pv-bg);
+  color: var(--pv-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}
+
+@mixin preview-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--pv-text);
+  margin: 0 0 12px;
+}
+
+@mixin preview-card {
+  background: var(--pv-surface);
+  border-radius: 16px;
+  border: 1px solid var(--pv-border);
+}

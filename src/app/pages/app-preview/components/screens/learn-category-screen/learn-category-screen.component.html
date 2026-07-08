@@ -1,0 +1,42 @@
+<div class="screen" [ngClass]="'screen--' + theme">
+  <div class="header">
+    <button type="button" class="back-btn" aria-label="Retour">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h1>Grammaire</h1>
+      <span>5 leçons · Niveau A2</span>
+    </div>
+  </div>
+  <div class="category-banner">
+    <mat-icon>rule</mat-icon>
+    <div>
+      <strong>Progression catégorie</strong>
+      <div class="banner-bar"><div class="banner-fill" style="width: 40%"></div></div>
+    </div>
+    <span class="banner-pct">40%</span>
+  </div>
+  <div class="lesson-list">
+    @for (lesson of lessons; track lesson.title; let i = $index) {
+      <div class="lesson-item" [class.lesson-item--locked]="lesson.locked">
+        <div class="lesson-num">{{ i + 1 }}</div>
+        <div class="lesson-info">
+          <strong>{{ lesson.title }}</strong>
+          <span>{{ lesson.duration }}</span>
+          @if (!lesson.locked && lesson.progress > 0) {
+            <div class="lesson-bar">
+              <div class="lesson-fill" [style.width.%]="lesson.progress"></div>
+            </div>
+          }
+        </div>
+        @if (lesson.locked) {
+          <mat-icon class="lock">lock</mat-icon>
+        } @else if (lesson.progress === 100) {
+          <mat-icon class="done">check_circle</mat-icon>
+        } @else {
+          <mat-icon class="chevron">chevron_right</mat-icon>
+        }
+      </div>
+    }
+  </div>
+</div>

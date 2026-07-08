@@ -6,6 +6,7 @@ import { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
 import { AdminStats } from '../../core/models/stats.model';
+import { AdminUserOut, SchoolStats } from '../../core/models/user.model';
 import { ApiService } from '../../core/http/api.service';
 import { StatCardComponent } from '../../shared/stat-card/stat-card.component';
 import { AdminAuthService } from '../../core/auth/admin-auth.service';
@@ -18,6 +19,7 @@ interface ModuleCard {
   gradient: string; color: string;
   description: string;
   count: (s: AdminStats) => number;
+  adminOnly?: boolean;
 }
 
 const CHART_COLORS = ['#6366f1','#ec4899','#10b981','#f59e0b','#06b6d4','#a855f7','#f97316','#ef4444'];
@@ -43,6 +45,8 @@ export class DashboardComponent implements OnInit {
   readonly loading = signal(true);
   readonly error   = signal('');
   readonly stats   = signal<AdminStats | null>(null);
+  readonly schoolStats = signal<SchoolStats | null>(null);
+  readonly profStats = signal<{ studentCount: number; activeStudents: number } | null>(null);
 
   get userName(): string {
     const u = this.auth.user();
@@ -50,6 +54,42 @@ export class DashboardComponent implements OnInit {
     if (u.role === 'school') return u.name || 'École';
     return `${u.firstName} ${u.lastName}`;
   }
+
+  readonly schoolModules: ModuleCard[] = [
+    {
+      label: 'Élèves', icon: 'school', route: '/students',
+      gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', color: '#2dd4bf',
+      description: 'Consultez vos élèves, leur parcours DELF et progression par niveau scolaire.',
+      count: (_s) => this.schoolStats()?.studentCount ?? 0,
+    },
+    {
+      label: 'Professeurs', icon: 'badge', route: '/professors',
+      gradient: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#a78bfa',
+      description: 'Créez et gérez les comptes professeurs de votre établissement.',
+      count: (_s) => this.schoolStats()?.professorCount ?? 0,
+    },
+  ];
+
+  readonly profModules: ModuleCard[] = [
+    {
+      label: 'Élèves', icon: 'people', route: '/users',
+      gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#818cf8',
+      description: 'Consultez vos élèves et leur parcours DELF détaillé (étapes, XP, streak).',
+      count: (_s) => this.profStats()?.studentCount ?? 0,
+    },
+    {
+      label: 'Leçons', icon: 'menu_book', route: '/lessons',
+      gradient: 'linear-gradient(135deg,#10b981,#34d399)', color: '#34d399',
+      description: 'Créez et éditez les leçons pédagogiques pour vos classes.',
+      count: () => 0,
+    },
+    {
+      label: 'Multijoueur', icon: 'groups', route: '/multiplayer',
+      gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#c084fc',
+      description: 'Organisez des quiz duels et défis entre amis avec difficulté adaptée.',
+      count: () => 0,
+    },
+  ];
 
   readonly modules: ModuleCard[] = [
     {
@@ -91,8 +131,36 @@ export class DashboardComponent implements OnInit {
     {
       label: 'Multijoueur', icon: 'groups', route: '/multiplayer',
       gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#c084fc',
-      description: 'Supervisez les salles de jeu multijoueur actives et l\'historique des parties disputées.',
+      description: 'Supervisez les salles de jeu actives et l\'historique des parties disputées.',
       count: s => s.multiplayerRooms,
+    },
+    {
+      label: 'Parcours DELF', icon: 'route', route: '/learning-paths',
+      gradient: 'linear-gradient(135deg,#6366f1,#06b6d4)', color: '#22d3ee',
+      description: 'Configurez les parcours structurés par niveau scolaire avec objectifs DELF et étapes.',
+      count: () => 0,
+      adminOnly: true,
+    },
+    {
+      label: 'Tests DELF', icon: 'assignment', route: '/delf-tests',
+      gradient: 'linear-gradient(135deg,#6366f1,#ec4899)', color: '#f472b6',
+      description: 'Consultez les tests de niveau DELF par catégorie et configurez les seuils d\'évaluation.',
+      count: () => 0,
+      adminOnly: true,
+    },
+    {
+      label: 'Jeux multijoueur', icon: 'sports_esports', route: '/games',
+      gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#c084fc',
+      description: 'Gérez le catalogue de jeux (quiz duel, défis entre amis) pour les salles multijoueur.',
+      count: () => 0,
+      adminOnly: true,
+    },
+    {
+      label: 'Établissements', icon: 'school', route: '/schools',
+      gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', color: '#34d399',
+      description: 'Créez et gérez les comptes établissements scolaires partenaires de la plateforme.',
+      count: s => s.totalSchools,
+      adminOnly: true,
     },
   ];
 
@@ -103,16 +171,17 @@ export class DashboardComponent implements OnInit {
     { label: 'Histoires',      icon: 'auto_stories',  route: '/stories',          gradient: 'linear-gradient(135deg,#ec4899,#f43f5e)' },
     { label: 'Messages',       icon: 'mail',          route: '/contact-messages', gradient: 'linear-gradient(135deg,#f97316,#fb923c)' },
     { label: 'Multijoueur',    icon: 'groups',        route: '/multiplayer',      gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
+    { label: 'Parcours DELF',  icon: 'route',         route: '/learning-paths',   gradient: 'linear-gradient(135deg,#6366f1,#06b6d4)' },
+    { label: 'Tests DELF',     icon: 'assignment',    route: '/delf-tests',       gradient: 'linear-gradient(135deg,#6366f1,#ec4899)' },
+    { label: 'Jeux',           icon: 'sports_esports', route: '/games',           gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
   ];
 
   get filteredModules(): ModuleCard[] {
     const role = this.auth.user()?.role;
     if (role === 'admin') return this.modules;
-    if (role === 'school') {
-      return this.modules.filter(m => ['Utilisateurs'].includes(m.label));
-    }
+    if (role === 'school') return this.schoolModules;
     if (role === 'prof') {
-      return this.modules.filter(m => ['Utilisateurs', 'Leçons', 'Multijoueur'].includes(m.label));
+      return this.profModules;
     }
     return [];
   }
@@ -121,12 +190,38 @@ export class DashboardComponent implements OnInit {
     const role = this.auth.user()?.role;
     if (role === 'admin') return this.quickActions;
     if (role === 'school') {
-      return this.quickActions.filter(q => ['Utilisateurs'].includes(q.label));
+      return [
+        { label: 'Élèves', icon: 'school', route: '/students', gradient: 'linear-gradient(135deg,#10b981,#06b6d4)' },
+        { label: 'Professeurs', icon: 'badge', route: '/professors', gradient: 'linear-gradient(135deg,#6366f1,#a855f7)' },
+      ];
     }
     if (role === 'prof') {
-      return this.quickActions.filter(q => ['Utilisateurs', 'Leçons', 'Multijoueur'].includes(q.label));
+      return [
+        { label: 'Élèves', icon: 'people', route: '/users', gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
+        { label: 'Leçons', icon: 'menu_book', route: '/lessons', gradient: 'linear-gradient(135deg,#10b981,#34d399)' },
+        { label: 'Multijoueur', icon: 'groups', route: '/multiplayer', gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
+      ];
     }
     return [];
+  }
+
+  get profKpiCards(): KpiCard[] {
+    const s = this.profStats();
+    if (!s) return [];
+    return [
+      { label: 'Élèves inscrits', value: s.studentCount },
+      { label: 'Élèves actifs', value: s.activeStudents },
+    ];
+  }
+
+  get schoolKpiCards(): KpiCard[] {
+    const s = this.schoolStats();
+    if (!s) return [];
+    return [
+      { label: 'Élèves inscrits', value: s.studentCount },
+      { label: 'Élèves actifs', value: s.activeStudents },
+      { label: 'Professeurs', value: s.professorCount },
+    ];
   }
 
   usersByLevelChart: ChartConfiguration<'bar'> = {
@@ -154,8 +249,27 @@ export class DashboardComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    if (this.auth.isSchool()) {
+      await this._loadSchoolStats();
+      this.stats.set({
+        totalUsers: 0, activeUsers: 0, totalLessons: 0, totalQuizQuestions: 0,
+        totalStories: 0, unreadMessages: 0, multiplayerRooms: 0, totalSchools: 0,
+        usersByLevel: {}, lessonsByCategory: {}
+      });
+      this.loading.set(false);
+      return;
+    }
+    if (this.auth.isProf()) {
+      await this._loadProfStats();
+      this.stats.set({
+        totalUsers: 0, activeUsers: 0, totalLessons: 0, totalQuizQuestions: 0,
+        totalStories: 0, unreadMessages: 0, multiplayerRooms: 0, totalSchools: 0,
+        usersByLevel: {}, lessonsByCategory: {}
+      });
+      this.loading.set(false);
+      return;
+    }
     if (!this.auth.isAdmin()) {
-      // Pour les écoles et professeurs, on masque les stats complexes pour l'instant
       this.stats.set({
         totalUsers: 0, activeUsers: 0, totalLessons: 0, totalQuizQuestions: 0,
         totalStories: 0, unreadMessages: 0, multiplayerRooms: 0, totalSchools: 0,
@@ -173,6 +287,34 @@ export class DashboardComponent implements OnInit {
       this.error.set(e instanceof Error ? e.message : 'Erreur chargement');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async _loadProfStats(): Promise<void> {
+    try {
+      const students = await this.api.get<AdminUserOut[]>('/prof/students');
+      this.profStats.set({
+        studentCount: students.length,
+        activeStudents: students.filter(s => s.isActive).length,
+      });
+    } catch {
+      this.profStats.set({ studentCount: 0, activeStudents: 0 });
+    }
+  }
+
+  private async _loadSchoolStats(): Promise<void> {
+    try {
+      const [students, professors] = await Promise.all([
+        this.api.get<AdminUserOut[]>('/school/students'),
+        this.api.get<AdminUserOut[]>('/school/professors'),
+      ]);
+      this.schoolStats.set({
+        studentCount: students.length,
+        professorCount: professors.length,
+        activeStudents: students.filter(s => s.isActive).length,
+      });
+    } catch {
+      this.schoolStats.set({ studentCount: 0, professorCount: 0, activeStudents: 0 });
     }
   }
 

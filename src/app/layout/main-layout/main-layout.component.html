@@ -21,7 +21,7 @@
 
     <!-- user mini-card -->
     @if (!sidebarCollapsed) {
-      <div class="sidebar-user" @fadeLabel>
+      <a class="sidebar-user" routerLink="/profile" @fadeLabel>
         <div class="user-avatar">
           <mat-icon>{{ userRole === 'admin' ? 'admin_panel_settings' : userRole === 'school' ? 'school' : 'person' }}</mat-icon>
         </div>
@@ -29,7 +29,7 @@
           <span class="user-name">{{ userName }}</span>
           <span class="user-badge">{{ displayRole }}</span>
         </div>
-      </div>
+      </a>
     }
 
     <div class="sidebar-sep"></div>
@@ -95,9 +95,9 @@
           <mat-icon>notifications_none</mat-icon>
           <span class="notif-dot"></span>
         </button>
-        <div class="topbar-avatar">
+        <a class="topbar-avatar" routerLink="/profile" title="Mon profil">
           <mat-icon>person</mat-icon>
-        </div>
+        </a>
       </div>
     </header>
 

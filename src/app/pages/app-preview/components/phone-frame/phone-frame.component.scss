@@ -1,0 +1,142 @@
+@import '../../styles/preview-tokens';
+
+.phone-outer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+}
+
+.phone-device {
+  position: relative;
+  width: 320px;
+  height: 692px;
+  border-radius: 44px;
+  background: #1a1a1a;
+  padding: 12px;
+  box-shadow:
+    0 0 0 2px #333,
+    0 0 0 4px #1a1a1a,
+    0 24px 64px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+
+  &--light {
+    @include preview-theme-vars(light);
+  }
+
+  &--dark {
+    @include preview-theme-vars(dark);
+  }
+}
+
+.phone-notch {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 28px;
+  background: #1a1a1a;
+  border-radius: 0 0 18px 18px;
+  z-index: 10;
+}
+
+.phone-status {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pv-text, #131313);
+}
+
+.phone-device--dark .phone-status {
+  color: #fff;
+}
+
+.phone-status-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.phone-signal,
+.phone-wifi,
+.phone-battery {
+  display: inline-block;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.phone-signal {
+  width: 14px;
+  height: 10px;
+  clip-path: polygon(0 100%, 25% 60%, 50% 80%, 75% 40%, 100% 70%, 100% 100%);
+}
+
+.phone-wifi {
+  width: 12px;
+  height: 10px;
+  border-radius: 50% 50% 0 0;
+  border: 2px solid currentColor;
+  border-bottom: none;
+  background: transparent;
+}
+
+.phone-battery {
+  width: 22px;
+  height: 10px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 2px;
+    width: 2px;
+    height: 4px;
+    background: currentColor;
+    border-radius: 0 1px 1px 0;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    width: 14px;
+    height: 4px;
+    background: currentColor;
+    border-radius: 1px;
+  }
+}
+
+.phone-screen {
+  height: calc(100% - 88px);
+  border-radius: 32px;
+  overflow: hidden;
+  background: var(--pv-bg, #fff);
+}
+
+.phone-home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 99px;
+}
+
+@media (max-width: 900px) {
+  .phone-device {
+    width: 280px;
+    height: 606px;
+  }
+}

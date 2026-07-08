@@ -12,6 +12,7 @@ import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { UserEditDialogComponent } from './user-edit.dialog';
 import { UserCreateDialogComponent } from './user-create.dialog';
+import { StudentParcoursDialogComponent } from '../../shared/student-parcours/student-parcours.dialog';
 import { DetailDialogComponent, DetailDialogData } from '../../shared/detail-dialog/detail-dialog.component';
 
 const AVATAR_COLORS = [
@@ -101,6 +102,19 @@ export class UsersComponent implements OnInit {
     return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
   }
 
+  get isProfView(): boolean {
+    return this.auth.user()?.role === 'prof';
+  }
+
+  openParcours(u: AdminUserOut): void {
+    this.dialog.open(StudentParcoursDialogComponent, {
+      data: { user: u },
+      panelClass: 'detail-panel',
+      width: '560px',
+      maxWidth: '96vw',
+    });
+  }
+
   openDetail(u: AdminUserOut): void {
     const data: DetailDialogData = {
       title: u.name ? u.name : `${u.firstName || ''} ${u.lastName || ''}`,
@@ -110,7 +124,8 @@ export class UsersComponent implements OnInit {
       fields: [
         { label: 'Nom',  value: u.name ? u.name : `${u.firstName || ''} ${u.lastName || ''}` },
         { label: 'E-mail',       value: u.email },
-        { label: 'Niveau',       value: u.level || '-',  type: 'code' },
+        { label: 'Classe',       value: u.classLevel || '—', type: 'code' },
+        { label: 'Niveau',       value: u.level || '—',  type: 'code' },
         { label: 'Rôle',         value: u.role,   type: 'badge',
           badgeClass: u.role === 'admin' ? 'badge-admin' : 'badge-user' },
         { label: 'Statut',       value: u.isActive ? 'Actif' : 'Inactif', type: 'badge',

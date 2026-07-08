@@ -1,0 +1,107 @@
+<div class="page-header">
+  <div class="ph-text">
+    <h1 class="ph-title">
+      <mat-icon class="ph-icon" style="color:#6366f1">assignment</mat-icon>
+      Tests DELF
+    </h1>
+    <p class="ph-sub">Historique des tests de niveau DELF par catégorie (Grammaire, Conjugaison, Orthographe, Vocabulaire)</p>
+  </div>
+  <div class="ph-actions">
+    <button class="btn-add" type="button" (click)="openConfig()">
+      <mat-icon>tune</mat-icon> Configurer les tests
+    </button>
+  </div>
+</div>
+
+<div class="search-bar">
+  <mat-icon>search</mat-icon>
+  <input placeholder="Rechercher par élève, classe ou niveau DELF…"
+         [(ngModel)]="searchTerm" (input)="applyFilter()" />
+  @if (searchTerm) {
+    <mat-icon class="search-clear" (click)="searchTerm='';applyFilter()">close</mat-icon>
+  }
+</div>
+
+<div class="filter-row">
+  <select class="page-size-select" [(ngModel)]="statusFilter" (change)="reload()">
+    <option value="">Tous les statuts</option>
+    <option value="completed">Terminés</option>
+    <option value="in_progress">En cours</option>
+    <option value="abandoned">Abandonnés</option>
+  </select>
+</div>
+
+<div class="table-wrap">
+  @if (loading()) {
+    <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <mat-icon>assignment</mat-icon>
+      <p>Aucun test DELF enregistré</p>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Élève</th>
+          <th>Classe</th>
+          <th>Objectif</th>
+          <th>Atteint</th>
+          <th>Score</th>
+          <th>Statut</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of paginated(); track row.sessionId) {
+          <tr (click)="openDetail(row)">
+            <td>
+              <div class="cell-primary">
+                <div>{{ studentName(row) }}</div>
+                <div class="cell-muted">{{ row.studentEmail }}</div>
+              </div>
+            </td>
+            <td><span class="cell-code">{{ row.classLevel }}</span></td>
+            <td><span class="badge badge-user">{{ row.targetDelfLevel }}</span></td>
+            <td>
+              @if (row.achievedDelfLevel) {
+                <span class="badge badge-active">{{ row.achievedDelfLevel }}</span>
+              } @else {
+                <span class="cell-muted">—</span>
+              }
+            </td>
+            <td>
+              @if (row.overallScore != null) {
+                <span class="score-badge" [class.score-good]="row.overallScore >= 70" [class.score-bad]="row.overallScore < 50">
+                  {{ row.overallScore }}%
+                </span>
+              } @else {
+                <span class="cell-muted">—</span>
+              }
+            </td>
+            <td><span class="badge badge-read">{{ statusLabel(row.status) }}</span></td>
+            <td class="cell-muted">{{ row.finishedAt || row.startedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <button class="action-btn view" (click)="openDetail(row); $event.stopPropagation()" title="Détail">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="page-btn" (click)="setPage(pageIndex - 1)" [disabled]="pageIndex === 0"><mat-icon>chevron_left</mat-icon></button>
+        @for (p of pages(); track p) {
+          @if (p >= pageIndex - 2 && p <= pageIndex + 2) {
+            <button class="page-btn" [class.active]="p === pageIndex" (click)="setPage(p)">{{ p + 1 }}</button>
+          }
+        }
+        <button class="page-btn" (click)="setPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>chevron_right</mat-icon></button>
+      </div>
+    }
+    <div class="table-footer"><span>{{ filtered().length }} test(s)</span></div>
+  }
+</div>

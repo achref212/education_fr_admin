@@ -1,0 +1,74 @@
+<div class="fd-wrap">
+  <div class="fd-header" style="background:linear-gradient(135deg,#6366f1,#ec4899)">
+    <div class="fd-header-icon"><mat-icon>tune</mat-icon></div>
+    <div class="fd-header-text">
+      <h2 class="fd-title">Configuration tests DELF</h2>
+      <span class="fd-sub">Questions par catégorie et seuils de niveau</span>
+    </div>
+    <button type="button" class="fd-close" (click)="dialogRef.close()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  @if (loading()) {
+    <div class="fd-body fd-body--center">
+      <mat-spinner diameter="28" />
+      <span>Chargement…</span>
+    </div>
+  } @else {
+    <div class="fd-body">
+      <label class="fd-label">Questions par catégorie</label>
+      <input
+        type="number"
+        min="1"
+        max="20"
+        class="fd-input"
+        [(ngModel)]="questionsPerCategory"
+      />
+      <p class="fd-hint">Entre 1 et 20 questions par catégorie (Grammaire, Conjugaison, Orthographe, Vocabulaire).</p>
+
+      <h3 class="fd-subtitle">Seuils de niveau DELF</h3>
+      <p class="fd-hint">Score global minimum et score minimum par catégorie pour chaque niveau.</p>
+
+      <div class="fd-thresholds">
+        @for (t of thresholds; track t.level; let i = $index) {
+          <div class="fd-threshold-row">
+            <span class="fd-level">{{ t.level }}</span>
+            <label>
+              Global %
+              <input
+                type="number"
+                min="0"
+                max="100"
+                [(ngModel)]="thresholds[i].minOverall"
+              />
+            </label>
+            <label>
+              Catégorie %
+              <input
+                type="number"
+                min="0"
+                max="100"
+                [(ngModel)]="thresholds[i].minCategory"
+              />
+            </label>
+          </div>
+        }
+      </div>
+
+      @if (error()) {
+        <div class="fd-error"><mat-icon>error_outline</mat-icon>{{ error() }}</div>
+      }
+    </div>
+
+    <div class="fd-footer">
+      <button type="button" class="fd-btn-cancel" (click)="dialogRef.close()">Annuler</button>
+      <button type="button" class="fd-btn-save" [disabled]="saving()" (click)="save()">
+        @if (saving()) {
+          <mat-spinner diameter="18" class="fd-spinner" />
+        } @else {
+          <mat-icon>save</mat-icon>
+        }
+        Enregistrer
+      </button>
+    </div>
+  }
+</div>

@@ -1,0 +1,28 @@
+<div class="screen" [ngClass]="'screen--' + theme">
+  <div class="header">
+    <button type="button" class="back-btn" aria-label="Retour">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="progress-wrap">
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 17%"></div>
+      </div>
+      <span class="progress-label">Section 1 / 6</span>
+    </div>
+  </div>
+  <span class="category-pill">Grammaire</span>
+  <div class="question-block">
+    <span class="q-number">Question 3 sur 5</span>
+    <h2>Choisissez la forme correcte du verbe :</h2>
+    <p class="q-text">« Hier, nous ___ au cinéma avec nos amis. »</p>
+  </div>
+  <div class="options">
+    @for (opt of options; track opt; let i = $index) {
+      <div class="option" [class.option--selected]="i === 1">
+        <span class="option-letter">{{ letters[i] }}</span>
+        <span>{{ opt }}</span>
+      </div>
+    }
+  </div>
+  <button type="button" class="cta">Question suivante</button>
+</div>

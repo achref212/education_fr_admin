@@ -1,0 +1,253 @@
+@import '../../../styles/preview-tokens';
+
+.screen {
+  @include preview-screen-base;
+  padding: 8px 14px 16px;
+
+  &--light { @include preview-theme-vars(light); }
+  &--dark { @include preview-theme-vars(dark); }
+}
+
+.app-bar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.pill {
+  @include preview-card;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--pv-text-muted);
+  }
+
+  &.streak strong {
+    color: var(--pv-error);
+    font-weight: 700;
+  }
+}
+
+.flag {
+  font-size: 18px;
+}
+
+.daily-goal {
+  background: var(--pv-primary);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3);
+  color: var(--pv-on-primary);
+
+  h2 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 8px 0 12px;
+    line-height: 1.3;
+  }
+}
+
+.goal-tag {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.goal-btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--pv-primary);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: default;
+}
+
+.goal-icon {
+  font-size: 56px !important;
+  width: 56px !important;
+  height: 56px !important;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+.section-title {
+  @include preview-section-title;
+  margin-top: 4px;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.category-card {
+  @include preview-card;
+  padding: 12px;
+  border-radius: 16px;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.cat-title {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.cat-progress {
+  height: 4px;
+  background: var(--pv-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.cat-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.activities {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.activity {
+  @include preview-card;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  strong {
+    display: block;
+    font-size: 13px;
+  }
+
+  span {
+    font-size: 11px;
+    color: var(--pv-text-muted);
+  }
+
+  .chevron {
+    margin-left: auto;
+    color: var(--pv-text-muted);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.act-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  &--quiz { background: rgba(0, 122, 255, 0.15); color: var(--pv-primary); }
+  &--story { background: rgba(88, 86, 214, 0.15); color: #5856d6; }
+  &--multi { background: rgba(255, 45, 85, 0.15); color: #ff2d55; }
+}
+
+.progress-card {
+  @include preview-card;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  margin-bottom: 8px;
+
+  strong {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  span {
+    font-size: 11px;
+    color: var(--pv-text-muted);
+  }
+}
+
+.progress-ring {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  span {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--pv-text);
+  }
+}
+
+.ring-bg {
+  fill: none;
+  stroke: rgba(0, 122, 255, 0.2);
+  stroke-width: 3;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--pv-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+}

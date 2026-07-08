@@ -1,0 +1,44 @@
+<div class="screen" [ngClass]="'screen--' + theme">
+  <div class="header">
+    <button type="button" class="back-btn" aria-label="Retour">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Multijoueur</h1>
+  </div>
+  <div class="hero-card">
+    <mat-icon>groups</mat-icon>
+    <div>
+      <strong>Défiez vos camarades</strong>
+      <span>Rejoignez une salle ou créez la vôtre</span>
+    </div>
+  </div>
+  <div class="join-section">
+    <label>Code de salle</label>
+    <div class="join-row">
+      <input type="text" value="DELF42" readonly />
+      <button type="button" class="join-btn">Rejoindre</button>
+    </div>
+  </div>
+  <button type="button" class="create-btn">
+    <mat-icon>add_circle</mat-icon>
+    Créer une salle
+  </button>
+  <h3 class="section-title">Salles actives</h3>
+  <div class="room-list">
+    @for (room of rooms; track room.code) {
+      <div class="room-item">
+        <div class="room-icon">
+          <mat-icon>sports_esports</mat-icon>
+        </div>
+        <div class="room-info">
+          <strong>{{ room.name }}</strong>
+          <span>Code : {{ room.code }}</span>
+        </div>
+        <div class="room-players">
+          <mat-icon>person</mat-icon>
+          {{ room.players }}/{{ room.maxPlayers }}
+        </div>
+      </div>
+    }
+  </div>
+</div>

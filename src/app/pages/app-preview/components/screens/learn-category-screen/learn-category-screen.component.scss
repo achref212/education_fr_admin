@@ -1,0 +1,161 @@
+@import '../../../styles/preview-tokens';
+
+.screen {
+  @include preview-screen-base;
+  padding: 12px 14px 16px;
+
+  &--light { @include preview-theme-vars(light); }
+  &--dark { @include preview-theme-vars(dark); }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h1 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  span {
+    font-size: 12px;
+    color: var(--pv-text-muted);
+  }
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: var(--pv-surface);
+  color: var(--pv-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.category-banner {
+  @include preview-card;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  background: var(--pv-surface-primary);
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: var(--pv-primary);
+  }
+
+  strong {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+}
+
+.banner-bar {
+  height: 4px;
+  background: rgba(0, 122, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  width: 120px;
+}
+
+.banner-fill {
+  height: 100%;
+  background: var(--pv-primary);
+  border-radius: 4px;
+}
+
+.banner-pct {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--pv-primary);
+  font-size: 16px;
+}
+
+.lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lesson-item {
+  @include preview-card;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+
+  &--locked {
+    opacity: 0.55;
+  }
+}
+
+.lesson-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--pv-surface-primary);
+  color: var(--pv-primary);
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lesson-info {
+  flex: 1;
+  min-width: 0;
+
+  strong {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+
+  span {
+    font-size: 11px;
+    color: var(--pv-text-muted);
+  }
+}
+
+.lesson-bar {
+  height: 3px;
+  background: var(--pv-border);
+  border-radius: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.lesson-fill {
+  height: 100%;
+  background: var(--pv-primary);
+  border-radius: 3px;
+}
+
+.lock, .chevron {
+  color: var(--pv-text-muted);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.done {
+  color: var(--pv-success);
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}

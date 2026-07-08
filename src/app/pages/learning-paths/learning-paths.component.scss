@@ -1,0 +1,15 @@
+@import '../../shared/table.scss';
+
+.empty-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--clr-text-muted);
+}
+
+.search-clear {
+  cursor: pointer;
+  color: var(--clr-text-muted);
+  opacity: 0.7;
+  &:hover { opacity: 1; color: var(--clr-text); }
+}

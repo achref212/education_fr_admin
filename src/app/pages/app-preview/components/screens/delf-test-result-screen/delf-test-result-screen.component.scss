@@ -1,0 +1,137 @@
+@import '../../../styles/preview-tokens';
+
+.screen {
+  @include preview-screen-base;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &--light { @include preview-theme-vars(light); }
+  &--dark { @include preview-theme-vars(dark); }
+}
+
+.result-hero {
+  text-align: center;
+  padding: 8px 0;
+
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 12px 0 4px;
+  }
+
+  p {
+    font-size: 13px;
+    color: var(--pv-text-muted);
+    margin: 0 0 12px;
+  }
+}
+
+.trophy {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff9500, #ffcc00);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(255, 149, 0, 0.4);
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: #fff;
+  }
+}
+
+.level-badge {
+  display: inline-block;
+  padding: 10px 28px;
+  border-radius: 16px;
+  background: var(--pv-primary);
+  color: var(--pv-on-primary);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.comparison {
+  @include preview-card;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  font-size: 12px;
+  color: var(--pv-success);
+  line-height: 1.4;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+}
+
+.score-overall {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  font-size: 14px;
+
+  strong {
+    font-size: 20px;
+    color: var(--pv-primary);
+  }
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.cat-row {
+  .cat-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 4px;
+
+    strong {
+      color: var(--pv-primary);
+    }
+  }
+}
+
+.cat-bar {
+  height: 6px;
+  background: var(--pv-surface);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.cat-fill {
+  height: 100%;
+  background: var(--pv-primary);
+  border-radius: 99px;
+}
+
+.cta {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: var(--pv-primary);
+  color: var(--pv-on-primary);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: default;
+  flex-shrink: 0;
+}

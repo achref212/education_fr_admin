@@ -1,0 +1,25 @@
+@import '../../shared/table.scss';
+
+.filter-row {
+  margin-bottom: 16px;
+}
+
+.score-badge {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--clr-primary-light);
+}
+
+.score-good {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.score-bad {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}

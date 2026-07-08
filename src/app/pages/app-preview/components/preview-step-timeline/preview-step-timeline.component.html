@@ -1,0 +1,26 @@
+<div class="timeline">
+  @for (step of steps; track step.id; let i = $index) {
+    <button
+      type="button"
+      class="timeline-step"
+      [class.timeline-step--active]="currentIndex === i"
+      [class.timeline-step--done]="i < currentIndex"
+      (click)="selectStep(i)"
+    >
+      <div class="timeline-marker">
+        @if (i < currentIndex) {
+          <mat-icon>check</mat-icon>
+        } @else {
+          <span>{{ step.order }}</span>
+        }
+      </div>
+      <div class="timeline-content">
+        <span class="timeline-title">{{ step.title }}</span>
+        <span class="timeline-sub">{{ step.subtitle }}</span>
+      </div>
+    </button>
+    @if (i < steps.length - 1) {
+      <div class="timeline-line" [class.timeline-line--done]="i < currentIndex"></div>
+    }
+  }
+</div>

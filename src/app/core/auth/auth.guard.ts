@@ -20,3 +20,19 @@ export const loginPageGuard: CanActivateFn = () => {
   }
   return true;
 };
+
+export const schoolRoleGuard: CanActivateFn = () => {
+  const auth = inject(AdminAuthService);
+  const router = inject(Router);
+  if (auth.isSchool()) return true;
+  if (auth.isLoggedIn()) return router.createUrlTree(['/dashboard']);
+  return router.createUrlTree(['/login']);
+};
+
+export const adminRoleGuard: CanActivateFn = () => {
+  const auth = inject(AdminAuthService);
+  const router = inject(Router);
+  if (auth.isAdmin()) return true;
+  if (auth.isLoggedIn()) return router.createUrlTree(['/dashboard']);
+  return router.createUrlTree(['/login']);
+};

@@ -1,0 +1,126 @@
+<!-- header -->
+<div class="page-header">
+  <div class="ph-text">
+    <h1 class="ph-title">
+      <mat-icon class="ph-icon" style="color:#34d399">school</mat-icon>
+      Établissements
+    </h1>
+    <p class="ph-sub">Gérez les comptes établissements — créez, modifiez et désactivez les écoles partenaires</p>
+  </div>
+  <div class="ph-actions">
+    <button class="btn-add" (click)="openCreate()">
+      <mat-icon>add_business</mat-icon> Nouvel établissement
+    </button>
+  </div>
+</div>
+
+<!-- search -->
+<div class="search-bar">
+  <mat-icon>search</mat-icon>
+  <input placeholder="Rechercher par nom, e-mail ou ville…"
+         [(ngModel)]="searchTerm" (input)="applyFilter()" />
+  @if (searchTerm) {
+    <mat-icon class="search-clear" (click)="searchTerm='';applyFilter()">close</mat-icon>
+  }
+</div>
+
+<!-- table -->
+<div class="table-wrap">
+  @if (loading()) {
+    <div class="table-loading">
+      <mat-spinner diameter="28" /><span>Chargement…</span>
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <mat-icon>domain_disabled</mat-icon>
+      <p>Aucun établissement trouvé</p>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Établissement</th>
+          <th>E-mail</th>
+          <th>Ville</th>
+          <th>Directeur</th>
+          <th>Statut</th>
+          <th>Créé le</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of paginated(); track s.id) {
+          <tr (click)="openDetail(s)">
+            <td>
+              <div class="cell-primary">
+                <div class="cell-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">
+                  {{ avatarLetter(s) }}
+                </div>
+                <div>
+                  <div class="cell-name">{{ s.name }}</div>
+                  <div class="cell-muted">ID: {{ s.id | slice:0:8 }}…</div>
+                </div>
+              </div>
+            </td>
+            <td>{{ s.email }}</td>
+            <td>
+              @if (s.city) {
+                <span class="cell-code">{{ s.city }}</span>
+              } @else {
+                <span class="cell-muted">—</span>
+              }
+            </td>
+            <td>{{ s.directorName || '—' }}</td>
+            <td>
+              <span class="badge" [class.badge-active]="s.isActive" [class.badge-inactive]="!s.isActive">
+                <mat-icon style="font-size:12px;width:12px;height:12px">
+                  {{ s.isActive ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+                {{ s.isActive ? 'Actif' : 'Inactif' }}
+              </span>
+            </td>
+            <td class="cell-muted">{{ s.createdAt | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <div class="actions-cell">
+                <button class="action-btn edit" (click)="openDetail(s); $event.stopPropagation()" title="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button class="action-btn del" (click)="confirmDelete(s); $event.stopPropagation()" title="Supprimer">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="page-btn" (click)="setPage(0)" [disabled]="pageIndex === 0">
+          <mat-icon>first_page</mat-icon>
+        </button>
+        <button class="page-btn" (click)="setPage(pageIndex - 1)" [disabled]="pageIndex === 0">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        @for (p of pages(); track p) {
+          @if (p >= pageIndex - 2 && p <= pageIndex + 2) {
+            <button class="page-btn" [class.active]="p === pageIndex" (click)="setPage(p)">{{ p + 1 }}</button>
+          }
+        }
+        <button class="page-btn" (click)="setPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages() - 1">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        <button class="page-btn" (click)="setPage(totalPages() - 1)" [disabled]="pageIndex >= totalPages() - 1">
+          <mat-icon>last_page</mat-icon>
+        </button>
+        <span class="page-info">{{ pageIndex + 1 }} / {{ totalPages() }}</span>
+      </div>
+    }
+    <div class="table-footer">
+      <span>{{ filtered().length }} établissement(s)</span>
+      <span>Page {{ pageIndex + 1 }} / {{ totalPages() || 1 }}</span>
+    </div>
+  }
+</div>

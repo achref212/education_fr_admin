@@ -1,0 +1,91 @@
+<div class="page-header">
+  <div class="ph-text">
+    <h1 class="ph-title">
+      <mat-icon class="ph-icon" style="color:#a855f7">badge</mat-icon>
+      Professeurs
+    </h1>
+    <p class="ph-sub">Gérez les comptes professeurs de votre établissement</p>
+  </div>
+  <div class="ph-actions">
+    <button class="btn-add" (click)="openCreate()">
+      <mat-icon>person_add</mat-icon> Nouveau professeur
+    </button>
+  </div>
+</div>
+
+<div class="search-bar">
+  <mat-icon>search</mat-icon>
+  <input placeholder="Rechercher par nom ou e-mail…"
+         [(ngModel)]="searchTerm" (input)="applyFilter()" />
+  @if (searchTerm) {
+    <mat-icon class="search-clear" (click)="searchTerm='';applyFilter()">close</mat-icon>
+  }
+</div>
+
+<div class="table-wrap">
+  @if (loading()) {
+    <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <mat-icon>badge</mat-icon>
+      <p>Aucun professeur enregistré</p>
+      <button class="btn-add empty-btn" (click)="openCreate()">
+        <mat-icon>person_add</mat-icon> Créer un professeur
+      </button>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Professeur</th>
+          <th>E-mail</th>
+          <th>Téléphone</th>
+          <th>Statut</th>
+          <th>Créé le</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of paginated(); track u.id) {
+          <tr (click)="openDetail(u)">
+            <td>
+              <div class="cell-primary">
+                <div class="cell-avatar" [style.background]="avatarColor(u.firstName)">
+                  {{ (u.firstName || '?')[0] }}{{ (u.lastName || '')[0] || '' }}
+                </div>
+                <div>
+                  <div>{{ u.firstName }} {{ u.lastName }}</div>
+                  <div class="cell-muted">Professeur</div>
+                </div>
+              </div>
+            </td>
+            <td>{{ u.email }}</td>
+            <td class="cell-muted">{{ u.phone || '—' }}</td>
+            <td>
+              <span class="badge" [class.badge-active]="u.isActive" [class.badge-inactive]="!u.isActive">
+                {{ u.isActive ? 'Actif' : 'Inactif' }}
+              </span>
+            </td>
+            <td class="cell-muted">{{ u.createdAt | date:'dd/MM/yyyy' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="page-btn" (click)="setPage(0)" [disabled]="pageIndex === 0"><mat-icon>first_page</mat-icon></button>
+        <button class="page-btn" (click)="setPage(pageIndex - 1)" [disabled]="pageIndex === 0"><mat-icon>chevron_left</mat-icon></button>
+        @for (p of pages(); track p) {
+          @if (p >= pageIndex - 2 && p <= pageIndex + 2) {
+            <button class="page-btn" [class.active]="p === pageIndex" (click)="setPage(p)">{{ p + 1 }}</button>
+          }
+        }
+        <button class="page-btn" (click)="setPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>chevron_right</mat-icon></button>
+        <button class="page-btn" (click)="setPage(totalPages() - 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>last_page</mat-icon></button>
+        <span class="page-info">{{ pageIndex + 1 }} / {{ totalPages() }}</span>
+      </div>
+    }
+    <div class="table-footer">
+      <span>{{ filtered().length }} professeur(s)</span>
+    </div>
+  }
+</div>

@@ -5,7 +5,7 @@
     <div class="wb-text">
       <span class="wb-greeting">Bonjour, {{ userName }} 👋</span>
       <h1 class="wb-title">Tableau de bord DELFy</h1>
-      <p class="wb-sub">Vue d'ensemble de votre plateforme d'apprentissage</p>
+      <p class="wb-sub">{{ auth.isSchool() ? 'Suivez vos élèves, leur parcours DELF et vos professeurs' : auth.isProf() ? 'Parcours DELF, leçons et quiz multijoueur pour vos classes' : 'Vue d\'ensemble de votre plateforme d\'apprentissage' }}</p>
     </div>
   </div>
   <div class="wb-badge">
@@ -45,7 +45,6 @@
 
         <!-- charts row -->
         <div class="charts-row">
-
           <div class="chart-card anim-fade-up" style="animation-delay:200ms">
             <div class="chart-header">
               <div class="chart-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
@@ -85,14 +84,39 @@
               </canvas>
             </div>
           </div>
-
         </div><!-- charts-row -->
+      }
+
+      @if (auth.isSchool()) {
+        <div class="kpi-grid">
+          @for (card of schoolKpiCards; track card.label; let i = $index) {
+            <app-stat-card
+              [label]="card.label"
+              [value]="card.value"
+              [hint]="card.hint ?? ''"
+              [style.animation-delay]="(i * 80) + 'ms'"
+            />
+          }
+        </div>
+      }
+
+      @if (auth.isProf()) {
+        <div class="kpi-grid">
+          @for (card of profKpiCards; track card.label; let i = $index) {
+            <app-stat-card
+              [label]="card.label"
+              [value]="card.value"
+              [hint]="card.hint ?? ''"
+              [style.animation-delay]="(i * 80) + 'ms'"
+            />
+          }
+        </div>
       }
 
       <!-- modules description grid -->
       <div class="modules-section anim-fade-up" style="animation-delay:400ms">
-        <h2 class="section-title">Modules de gestion</h2>
-        <p class="section-sub">Cliquez sur un module pour gérer son contenu</p>
+        <h2 class="section-title">{{ auth.isSchool() ? 'Gestion de l\'établissement' : auth.isProf() ? 'Espace professeur' : 'Modules de gestion' }}</h2>
+        <p class="section-sub">{{ auth.isSchool() ? 'Parcours DELF, progression et gestion des professeurs' : auth.isProf() ? 'Élèves, parcours DELF, leçons et parties multijoueur' : 'Cliquez sur un module pour gérer son contenu' }}</p>
         <div class="modules-grid">
           @for (m of filteredModules; track m.label; let i = $index) {
             <a class="module-card" [routerLink]="m.route"
@@ -115,6 +139,23 @@
           }
         </div>
       </div>
+
+      @if (filteredQuickActions.length) {
+        <div class="quick-actions anim-fade-up" style="animation-delay:520ms">
+          <h2 class="section-title">Accès rapide</h2>
+          <div class="qa-grid">
+            @for (qa of filteredQuickActions; track qa.route) {
+              <a class="qa-card" [routerLink]="qa.route">
+                <div class="qa-icon" [style.background]="qa.gradient">
+                  <mat-icon>{{ qa.icon }}</mat-icon>
+                </div>
+                <span class="qa-label">{{ qa.label }}</span>
+                <mat-icon class="qa-arrow">arrow_forward</mat-icon>
+              </a>
+            }
+          </div>
+        </div>
+      }
 
     }
   }

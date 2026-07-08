@@ -30,15 +30,15 @@
 
 /* ── Light mode overrides ───────────────────────────────────────────── */
 [data-theme='light'] {
-  --clr-bg:            #f0f2ff;
+  --clr-bg:            #f4f6fc;
   --clr-surface:       #ffffff;
-  --clr-surface-2:     #eef0fb;
-  --clr-border:        rgba(99,102,241,.12);
+  --clr-surface-2:     #f0f2fa;
+  --clr-border:        rgba(30, 27, 75, 0.1);
   --clr-text:          #1e1b4b;
-  --clr-text-muted:    #6b7280;
-  --clr-primary-light: #6366f1;
-  --shadow:            0 8px 32px rgba(99,102,241,.12);
-  --shadow-sm:         0 4px 16px rgba(99,102,241,.08);
+  --clr-text-muted:    #4b5563;
+  --clr-primary-light: #4f46e5;
+  --shadow:            0 8px 32px rgba(30, 27, 75, 0.08);
+  --shadow-sm:         0 4px 16px rgba(30, 27, 75, 0.06);
 }
 
 /* ── Reset & base ───────────────────────────────────────────────────── */
@@ -113,7 +113,7 @@ html, body {
   background: var(--clr-surface) !important;
   padding: 0 !important;
   box-shadow: 0 24px 64px rgba(0,0,0,.45) !important;
-  overflow: hidden;
+  overflow: visible;
 }
 .form-dialog-panel .mdc-dialog__surface {
   border-radius: 24px !important;
@@ -131,11 +131,12 @@ html, body {
   background: var(--clr-surface) !important;
   padding: 0 !important;
   box-shadow: 0 24px 64px rgba(0,0,0,.4) !important;
-  overflow: hidden;
+  overflow: visible;
 }
 .detail-panel .mdc-dialog__surface {
   border-radius: 24px !important;
   background: var(--clr-surface) !important;
+  overflow: visible;
 }
 
 /* ── Material dialog backdrop ────────────────────────────────────────── */
@@ -144,11 +145,253 @@ html, body {
   backdrop-filter: blur(4px);
 }
 
+/* ── Datepicker calendar ─────────────────────────────────────────────── */
+.birthday-panel,
+.mat-datepicker-content {
+  border: 1px solid var(--clr-border) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45) !important;
+  overflow: hidden !important;
+  background: var(--clr-surface) !important;
+  color: var(--clr-text) !important;
+}
+
+.cdk-overlay-pane:has(.birthday-panel),
+.cdk-overlay-pane:has(.mat-datepicker-content) {
+  z-index: 1200 !important;
+}
+
+.mat-datepicker-content .mat-calendar {
+  width: 320px !important;
+  min-width: 320px !important;
+  font-family: 'Inter', sans-serif !important;
+  background: var(--clr-surface) !important;
+}
+
+.mat-datepicker-content .mat-calendar-content {
+  padding: 0 12px 16px !important;
+}
+
+.mat-datepicker-content .mat-calendar-header {
+  padding: 12px 8px 4px !important;
+  background: rgba(99, 102, 241, 0.08) !important;
+  border-bottom: 1px solid var(--clr-border) !important;
+}
+
+.mat-datepicker-content .mat-calendar-controls {
+  margin: 0 0 8px !important;
+}
+
+.mat-datepicker-content .mat-calendar-period-button,
+.mat-datepicker-content .mat-calendar-arrow {
+  color: var(--clr-text) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+
+.mat-datepicker-content .mat-calendar-previous-button,
+.mat-datepicker-content .mat-calendar-next-button {
+  color: var(--clr-primary-light) !important;
+}
+
+.mat-datepicker-content .mat-calendar-table-header th {
+  color: var(--clr-text-muted) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  padding: 8px 0 4px !important;
+}
+
+.mat-datepicker-content .mat-calendar-body-label {
+  color: var(--clr-text-muted) !important;
+  font-weight: 600 !important;
+}
+
+.mat-datepicker-content .mat-calendar-body-cell-content {
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  border-radius: 50% !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--clr-text) !important;
+  border: 2px solid transparent !important;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
+}
+
+.mat-datepicker-content .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover
+  .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+  background: rgba(99, 102, 241, 0.15) !important;
+}
+
+.mat-datepicker-content .mat-calendar-body-cell-content.mat-calendar-body-selected {
+  background-color: var(--clr-primary) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.45) !important;
+}
+
+.mat-datepicker-content .mat-calendar-body-cell-content.mat-calendar-body-today:not(.mat-calendar-body-selected) {
+  border-color: var(--clr-primary-light) !important;
+  color: var(--clr-primary-light) !important;
+  font-weight: 700 !important;
+}
+
+.mat-datepicker-content .mat-calendar-body-disabled
+  .mat-calendar-body-cell-content {
+  color: rgba(148, 163, 184, 0.35) !important;
+}
+
+.mat-datepicker-content .mat-calendar-body-cell-content.mat-focus-indicator {
+  outline: none !important;
+}
+
+/* Toggle button in form fields */
+.mat-datepicker-toggle .mat-mdc-icon-button {
+  color: var(--clr-primary-light) !important;
+}
+
+.mat-datepicker-toggle .mat-mdc-icon-button:hover {
+  background: rgba(99, 102, 241, 0.12) !important;
+}
+
+/* Light mode calendar */
+[data-theme='light'] {
+  .birthday-panel,
+  .mat-datepicker-content {
+    background: #ffffff !important;
+    border: 1px solid rgba(99, 102, 241, 0.15) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14) !important;
+  }
+
+  .mat-datepicker-content .mat-calendar {
+    background: #ffffff !important;
+  }
+
+  .mat-datepicker-content .mat-calendar-header {
+    background: rgba(99, 102, 241, 0.06) !important;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.12) !important;
+  }
+
+  .mat-datepicker-content .mat-calendar-period-button,
+  .mat-datepicker-content .mat-calendar-arrow {
+    color: #1e1b4b !important;
+  }
+
+  .mat-datepicker-content .mat-calendar-body-cell-content {
+    color: #1e1b4b !important;
+  }
+
+  .mat-datepicker-content .mat-calendar-body-cell-content.mat-calendar-body-selected {
+    color: #ffffff !important;
+  }
+
+  .mat-datepicker-content .mat-calendar-body-cell-content.mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    color: var(--clr-primary-dark) !important;
+    border-color: var(--clr-primary) !important;
+  }
+}
+
 /* ── Light mode misc fixes ────────────────────────────────────────────── */
 [data-theme='light'] {
-  .sidebar { background: white; }
-  .topbar  { background: white; }
+  .sidebar { background: var(--clr-surface); border-right-color: var(--clr-border); }
+  .topbar  { background: var(--clr-surface); border-bottom-color: var(--clr-border); }
   .mat-mdc-progress-spinner circle { stroke: var(--clr-primary) !important; }
+
+  .mat-mdc-form-field .mdc-text-field {
+    background: #ffffff !important;
+  }
+
+  .mat-mdc-form-field .mdc-floating-label,
+  .mat-mdc-form-field .mat-mdc-input-element,
+  .mat-mdc-select-value-text {
+    color: var(--clr-text) !important;
+  }
+
+  .mat-mdc-form-field .mdc-notched-outline__leading,
+  .mat-mdc-form-field .mdc-notched-outline__notch,
+  .mat-mdc-form-field .mdc-notched-outline__trailing {
+    border-color: rgba(30, 27, 75, 0.15) !important;
+  }
+
+  .data-table thead tr {
+    background: rgba(99, 102, 241, 0.06);
+  }
+
+  .data-table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.05);
+  }
+
+  .cell-code {
+    background: rgba(99, 102, 241, 0.08);
+    color: #4338ca;
+  }
+
+  .module-card,
+  .chart-card,
+  .welcome-banner {
+    border: 1px solid var(--clr-border);
+  }
+
+  .mc-desc,
+  .section-sub,
+  .ph-sub {
+    color: var(--clr-text-muted);
+  }
+
+  .form-dialog-panel .mat-mdc-dialog-container,
+  .detail-panel .mat-mdc-dialog-container {
+    box-shadow: 0 24px 64px rgba(30, 27, 75, 0.12) !important;
+  }
+
+  .action-btn.edit  { color: #4338ca; &:hover { background: rgba(99,102,241,.12); color: #3730a3; } }
+  .action-btn.del   { color: #b91c1c; &:hover { background: rgba(239,68,68,.1); color: #991b1b; } }
+  .action-btn.view  { color: #0e7490; &:hover { background: rgba(6,182,212,.1); color: #155e75; } }
+
+  .search-clear {
+    cursor: pointer;
+    color: var(--clr-text-muted) !important;
+    opacity: 0.75;
+    &:hover { opacity: 1; color: var(--clr-text) !important; }
+  }
+
+  .badge-admin    { color: #4338ca; }
+  .badge-user     { color: #0e7490; }
+  .badge-active   { color: #047857; }
+  .badge-inactive { color: #b91c1c; }
+  .badge-unread   { color: #c2410c; }
+  .badge-gram     { color: #4338ca; }
+  .badge-conj     { color: #0e7490; }
+  .badge-orth     { color: #047857; }
+  .badge-voca     { color: #b45309; }
+
+  .empty-state mat-icon,
+  .empty-hint {
+    color: var(--clr-text-muted);
+  }
+
+  .nav-label,
+  .nav-item .nav-text {
+    color: var(--clr-text);
+  }
+
+  .auth-root .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(30, 27, 75, 0.1);
+    box-shadow: 0 24px 48px rgba(30, 27, 75, 0.1);
+  }
+
+  .auth-root .tab-bar { background: rgba(99, 102, 241, 0.06); }
+  .auth-root .tab { color: #6b7280; }
+  .auth-root .tab.active { color: white; }
+  .auth-root .form-header h2 { color: var(--clr-text); }
+  .auth-root .form-header p,
+  .auth-root .loading-setup,
+  .auth-root .field-section-label,
+  .auth-root .step-label { color: var(--clr-text-muted); }
+  .auth-root .field-group .field-icon { color: rgba(30, 27, 75, 0.35); }
+  .auth-root .step-line { background: rgba(30, 27, 75, 0.12); }
 }
 
 /* ── Badge light-mode overrides ──────────────────────────────────────────
@@ -183,4 +426,114 @@ html, body {
   .score-badge.score-bad { background: rgba(239,68,68,.1);  color: #b91c1c; }
 
   /* correct-option label in quiz table — already uses #10b981 which is fine */
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Phone-code panel  (mat-select overlay, class="phone-panel")
+   panelClass is applied directly on .mat-mdc-select-panel — it must scroll.
+══════════════════════════════════════════════════════════════════════════ */
+.phone-panel {
+  background: var(--clr-surface, #16213e) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,.5) !important;
+  padding: 0 !important;
+  min-width: 280px !important;
+  max-width: 340px !important;
+  max-height: min(380px, 60vh) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-behavior: smooth !important;
+  touch-action: pan-y !important;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.5) transparent;
+
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.45);
+    border-radius: 99px;
+  }
+  &::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.65); }
+
+  /* Sticky search bar — stays visible while scrolling options */
+  .pi-search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px 8px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--clr-surface, #16213e);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .pi-search-icon {
+    font-size: 18px; width: 18px; height: 18px;
+    color: rgba(255,255,255,.35);
+    flex-shrink: 0;
+  }
+  .pi-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 13px;
+    color: var(--clr-text, #e2e8f0);
+    font-family: inherit;
+    &::placeholder { color: rgba(255,255,255,.28); }
+  }
+  .pi-search-clear {
+    font-size: 16px; width: 16px; height: 16px;
+    color: rgba(255,255,255,.3);
+    cursor: pointer;
+    flex-shrink: 0;
+    &:hover { color: rgba(255,255,255,.6); }
+  }
+
+  .pi-opt-flag    { font-size: 20px; margin-right: 8px; flex-shrink: 0; }
+  .pi-opt-code    { font-size: 12px; font-weight: 700; min-width: 44px; color: var(--clr-primary, #6366f1); flex-shrink: 0; }
+  .pi-opt-country { font-size: 12px; color: var(--clr-text-muted, rgba(255,255,255,.55)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+
+  .mat-mdc-option {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 44px;
+    padding: 4px 16px;
+    font-size: 13px;
+    color: var(--clr-text, #e2e8f0);
+    border-radius: 0;
+
+    &:hover, &.mat-mdc-option-active {
+      background: rgba(99,102,241,.12) !important;
+    }
+    &.mdc-list-item--selected {
+      background: rgba(99,102,241,.18) !important;
+      .pi-opt-code { color: #a5b4fc; }
+    }
+  }
+}
+
+/* Light-mode overrides for the phone panel */
+[data-theme='light'] .phone-panel {
+  background: #ffffff !important;
+  border: 1px solid rgba(0,0,0,.09) !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.14) !important;
+
+  .pi-search-row {
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0,0,0,.08);
+  }
+  .pi-search-icon { color: rgba(0,0,0,.35); }
+  .pi-search-input { color: #131313; &::placeholder { color: rgba(0,0,0,.35); } }
+  .pi-search-clear { color: rgba(0,0,0,.35); &:hover { color: rgba(0,0,0,.6); } }
+  .pi-opt-country { color: rgba(0,0,0,.55); }
+
+  .mat-mdc-option {
+    color: #131313;
+    &:hover, &.mat-mdc-option-active { background: rgba(99,102,241,.07) !important; }
+  }
 }

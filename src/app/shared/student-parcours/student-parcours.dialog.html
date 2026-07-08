@@ -1,0 +1,148 @@
+<div class="spd-wrap">
+  <div class="spd-header">
+    <div class="spd-avatar">
+      {{ (data.user.firstName || '?')[0] }}{{ (data.user.lastName || '')[0] || '' }}
+    </div>
+    <div class="spd-info">
+      <h2>{{ data.user.firstName }} {{ data.user.lastName }}</h2>
+      <p>{{ data.user.email }}</p>
+      <div class="spd-tags">
+        <span class="spd-tag spd-tag--level">{{ classLevel }}</span>
+        <span class="spd-tag spd-tag--delf">Objectif DELF {{ delfTarget }}</span>
+      </div>
+    </div>
+    <button class="spd-close" type="button" (click)="dialogRef.close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="spd-tabs">
+    <button type="button" class="spd-tab" [class.active]="activeTab === 'parcours'" (click)="activeTab = 'parcours'">
+      <mat-icon>route</mat-icon> Parcours
+    </button>
+    <button type="button" class="spd-tab" [class.active]="activeTab === 'tests'" (click)="activeTab = 'tests'">
+      <mat-icon>assignment</mat-icon> Tests DELF
+    </button>
+  </div>
+
+  @if (activeTab === 'parcours') {
+  @if (loading()) {
+    <div class="spd-loading">
+      <mat-spinner diameter="32" />
+      <span>Chargement du parcours…</span>
+    </div>
+  } @else {
+    @if (parcours(); as p) {
+    <div class="spd-kpis">
+      <div class="spd-kpi">
+        <mat-icon>trending_up</mat-icon>
+        <strong>{{ p.completionPercent }}%</strong>
+        <span>Parcours</span>
+      </div>
+      <div class="spd-kpi">
+        <mat-icon>bolt</mat-icon>
+        <strong>{{ p.totalXp }}</strong>
+        <span>XP total</span>
+      </div>
+      <div class="spd-kpi">
+        <mat-icon>local_fire_department</mat-icon>
+        <strong>{{ p.currentStreak }}</strong>
+        <span>Streak</span>
+      </div>
+      <div class="spd-kpi">
+        <mat-icon>speed</mat-icon>
+        <strong>{{ difficultyLabel(p.preferredDifficulty) }}</strong>
+        <span>Difficulté</span>
+      </div>
+    </div>
+
+    <div class="spd-progress-bar-wrap">
+      <div class="spd-progress-bar" [style.width.%]="p.completionPercent"></div>
+    </div>
+
+    <div class="spd-steps">
+      <h3><mat-icon>route</mat-icon> Étapes du parcours ({{ p.steps.length }})</h3>
+      <div class="spd-step-list">
+        @for (step of p.steps; track step.id) {
+          <div class="spd-step" [class]="'spd-step--' + step.status">
+            <div class="spd-step-icon">
+              <mat-icon>{{ stepTypeIcon(step) }}</mat-icon>
+            </div>
+            <div class="spd-step-body">
+              <div class="spd-step-title">{{ step.title }}</div>
+              <div class="spd-step-meta">
+                <span>{{ stepStatusLabel(step.status) }}</span>
+                @if (step.score != null) {
+                  <span>· Score {{ step.score }}%</span>
+                }
+                <span>· +{{ step.xpReward }} XP</span>
+              </div>
+            </div>
+            @if (step.status === 'completed') {
+              <mat-icon class="spd-step-check">check_circle</mat-icon>
+            }
+          </div>
+        }
+      </div>
+    </div>
+    } @else {
+    <div class="spd-fallback">
+      @if (error()) {
+        <p class="spd-error">{{ error() }}</p>
+      }
+      <div class="spd-kpis spd-kpis--compact">
+        <div class="spd-kpi">
+          <mat-icon>menu_book</mat-icon>
+          <strong>{{ legacyLessonsCount() }}</strong>
+          <span>Leçons</span>
+        </div>
+        <div class="spd-kpi">
+          <mat-icon>quiz</mat-icon>
+          <strong>{{ legacyQuizCount() }}</strong>
+          <span>Quiz</span>
+        </div>
+      </div>
+      <p class="spd-hint">
+        Le détail du parcours structuré est disponible pour les professeurs.
+        Les données ci-dessus proviennent de la progression classique.
+      </p>
+    </div>
+    }
+  }
+  }
+
+  @if (activeTab === 'tests') {
+    <div class="spd-tests">
+      @if (delfTests().length === 0) {
+        <p class="spd-hint">Aucun test DELF terminé pour cet élève.</p>
+      } @else {
+        @for (test of delfTests(); track test.sessionId) {
+          <div class="spd-test-card">
+            <div class="spd-test-top">
+              <strong>{{ test.achievedDelfLevel || '—' }}</strong>
+              <span class="spd-test-score">{{ test.overallScore ?? '—' }}%</span>
+            </div>
+            <div class="spd-test-meta">
+              <span>Objectif {{ test.targetDelfLevel }}</span>
+              <span>· {{ comparisonLabel(test.comparisonToTarget) }}</span>
+            </div>
+            <div class="spd-test-cats">
+              @for (cat of categoryKeys(test.categoryScores); track cat) {
+                <span class="spd-test-cat">{{ cat }} {{ test.categoryScores[cat] }}%</span>
+              }
+            </div>
+            @if (test.finishedAt) {
+              <div class="spd-test-date">{{ test.finishedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+
+  <div class="spd-footer">
+    <button class="spd-btn" type="button" (click)="dialogRef.close()">
+      <mat-icon>done</mat-icon>Fermer
+    </button>
+  </div>
+</div>

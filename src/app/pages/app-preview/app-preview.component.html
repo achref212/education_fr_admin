@@ -1,0 +1,122 @@
+<div class="page-header anim-fade-up">
+  <div class="ph-text">
+    <h1 class="ph-title">
+      <mat-icon class="ph-icon" style="color:#007AFF">smartphone</mat-icon>
+      Aperçu de l'application
+    </h1>
+    <p class="ph-sub">
+      Parcours interactif de l'expérience élève après connexion — aperçu en lecture seule des interfaces mobiles DELFy.
+    </p>
+  </div>
+  <div class="ph-actions">
+    <button type="button" class="theme-toggle" (click)="toggleTheme()" [title]="previewTheme() === 'light' ? 'Mode sombre' : 'Mode clair'">
+      <mat-icon>{{ previewTheme() === 'light' ? 'dark_mode' : 'light_mode' }}</mat-icon>
+      {{ previewTheme() === 'light' ? 'Mode sombre' : 'Mode clair' }}
+    </button>
+    <button
+      type="button"
+      class="autoplay-toggle"
+      [class.autoplay-toggle--active]="isAutoPlaying()"
+      (click)="toggleAutoPlay()"
+    >
+      <mat-icon>{{ isAutoPlaying() ? 'pause' : 'play_arrow' }}</mat-icon>
+      {{ isAutoPlaying() ? 'Pause' : 'Lecture auto' }}
+    </button>
+  </div>
+</div>
+
+<div class="preview-layout anim-fade-up" style="animation-delay:100ms">
+  <aside class="preview-sidebar">
+    <h2 class="sidebar-title">Parcours élève</h2>
+    <p class="sidebar-hint">Cliquez sur une étape pour prévisualiser l'écran correspondant.</p>
+    <app-preview-step-timeline
+      [steps]="steps"
+      [currentIndex]="currentStepIndex()"
+      (stepSelected)="selectStep($event)"
+    />
+  </aside>
+
+  <main class="preview-center">
+    <div class="step-indicator">
+      Étape {{ currentStep().order }} / {{ steps.length }}
+    </div>
+    <app-phone-frame
+      [theme]="previewTheme()"
+      [bottomNavIndex]="currentStep().bottomNavIndex ?? 0"
+      [showBottomNav]="showBottomNav()"
+    >
+      <div screen class="screen-container">
+        @for (step of [currentStep()]; track step.id) {
+          <div class="screen-inner" [@screenFade]>
+            @switch (step.screenKey) {
+              @case ('delfIntro') {
+                <app-delf-test-intro-screen [theme]="previewTheme()" />
+              }
+              @case ('delfQuestion') {
+                <app-delf-test-question-screen [theme]="previewTheme()" />
+              }
+              @case ('delfResult') {
+                <app-delf-test-result-screen [theme]="previewTheme()" />
+              }
+              @case ('home') {
+                <app-home-screen
+                  [theme]="previewTheme()"
+                  [variant]="step.homeVariant ?? 'initial'"
+                />
+              }
+              @case ('learnCategory') {
+                <app-learn-category-screen [theme]="previewTheme()" />
+              }
+              @case ('learnLesson') {
+                <app-learn-lesson-screen [theme]="previewTheme()" />
+              }
+              @case ('multiplayer') {
+                <app-multiplayer-screen [theme]="previewTheme()" />
+              }
+              @case ('profile') {
+                <app-profile-screen [theme]="previewTheme()" />
+              }
+            }
+          </div>
+        }
+      </div>
+    </app-phone-frame>
+    <p class="keyboard-hint">
+      <mat-icon>keyboard</mat-icon>
+      Utilisez ← → pour naviguer entre les étapes
+    </p>
+  </main>
+
+  <aside class="preview-details">
+    <div class="details-card">
+      <div class="details-header">
+        <div class="details-icon">
+          <mat-icon>{{ currentStep().icon }}</mat-icon>
+        </div>
+        <div>
+          <h2>{{ currentStep().title }}</h2>
+          <span>{{ currentStep().subtitle }}</span>
+        </div>
+      </div>
+      <p class="details-desc">{{ currentStep().description }}</p>
+      <div class="highlights">
+        <span class="highlights-label">Éléments clés</span>
+        <ul>
+          @for (item of currentStep().highlights; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </div>
+      <div class="nav-controls">
+        <button type="button" class="nav-btn" [disabled]="!canGoPrev()" (click)="goPrev()">
+          <mat-icon>arrow_back</mat-icon>
+          Précédent
+        </button>
+        <button type="button" class="nav-btn nav-btn--primary" [disabled]="!canGoNext()" (click)="goNext()">
+          Suivant
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+    </div>
+  </aside>
+</div>

@@ -4,8 +4,15 @@
       <mat-icon class="ph-icon" style="color:#c084fc">groups</mat-icon>
       Salles multijoueur
     </h1>
-    <p class="ph-sub">Supervisez les salles de jeu actives et l'historique des parties disputées en temps réel</p>
+    <p class="ph-sub">{{ isProf ? 'Créez une salle et invitez un groupe d\'élèves de votre établissement' : 'Supervisez les salles de jeu actives et l\'historique des parties disputées en temps réel' }}</p>
   </div>
+  @if (isProf) {
+    <div class="ph-actions">
+      <button class="btn-add" style="background:linear-gradient(135deg,#a855f7,#7c3aed);box-shadow:0 6px 18px rgba(168,85,247,.35)" (click)="openCreate()">
+        <mat-icon>add</mat-icon> Nouvelle salle
+      </button>
+    </div>
+  }
 </div>
 
 <div class="search-bar">
@@ -28,7 +35,9 @@
         <tr>
           <th>Code salle</th>
           <th>Libellé</th>
+          <th>Groupe</th>
           <th>Statut</th>
+          <th>Partie</th>
           <th>Joueurs</th>
           <th>Dernière activité</th>
         </tr>
@@ -45,13 +54,19 @@
               </div>
             </td>
             <td>{{ r.label ?? '—' }}</td>
+            <td><span class="cell-code">{{ r.classLevel ?? '—' }}</span></td>
             <td>
-              <span class="badge" [class.badge-active]="isActive(r)" [class.badge-inactive]="!isActive(r)">
-                {{ isActive(r) ? 'Active' : 'Terminée' }}
-              </span>
+              <span class="badge badge-user">{{ roomStatus(r) }}</span>
             </td>
             <td>
-              <span class="progress-count" style="color:#c084fc">
+              @if (r.activeSessionId) {
+                <span class="cell-code">En cours</span>
+              } @else {
+                <span class="cell-muted">—</span>
+              }
+            </td>
+            <td>
+              <span class="progress-count">
                 <mat-icon style="font-size:14px;width:14px;height:14px;vertical-align:middle">person</mat-icon>
                 {{ playerCount(r) }}
               </span>

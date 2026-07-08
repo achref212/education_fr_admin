@@ -1,0 +1,20 @@
+<div class="phone-outer">
+  <div class="phone-device" [ngClass]="'phone-device--' + theme">
+    <div class="phone-notch"></div>
+    <div class="phone-status">
+      <span class="phone-time">9:41</span>
+      <div class="phone-status-icons">
+        <span class="phone-signal"></span>
+        <span class="phone-wifi"></span>
+        <span class="phone-battery"></span>
+      </div>
+    </div>
+    <div class="phone-screen">
+      <ng-content select="[screen]"></ng-content>
+    </div>
+    @if (showBottomNav && bottomNavIndex !== null) {
+      <app-preview-bottom-nav [activeIndex]="bottomNavIndex" [theme]="theme" />
+    }
+    <div class="phone-home-indicator"></div>
+  </div>
+</div>

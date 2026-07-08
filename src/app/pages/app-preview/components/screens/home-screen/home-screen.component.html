@@ -1,0 +1,66 @@
+<div class="screen" [ngClass]="'screen--' + theme">
+  <div class="app-bar">
+    <div class="pill">
+      <span class="flag">🇫🇷</span>
+      <mat-icon>keyboard_arrow_down</mat-icon>
+    </div>
+    <div class="pill streak">
+      <span>🔥</span>
+      <strong>{{ streak }}</strong>
+    </div>
+  </div>
+  <div class="daily-goal">
+    <div class="goal-content">
+      <span class="goal-tag">OBJECTIF DU JOUR</span>
+      <h2>{{ dailyGoalTitle }}</h2>
+      <button type="button" class="goal-btn">Continuer</button>
+    </div>
+    <mat-icon class="goal-icon">menu_book</mat-icon>
+  </div>
+  <h3 class="section-title">Apprentissage</h3>
+  <div class="category-grid">
+    @for (cat of categories; track cat.title) {
+      <div class="category-card">
+        <div class="cat-icon" [style.background]="cat.color + '26'">
+          <mat-icon [style.color]="cat.color">{{ cat.icon }}</mat-icon>
+        </div>
+        <span class="cat-title">{{ cat.title }}</span>
+        <div class="cat-progress">
+          <div class="cat-fill" [style.width.%]="variant === 'return' ? 45 : 30" [style.background]="cat.color"></div>
+        </div>
+      </div>
+    }
+  </div>
+  <h3 class="section-title">Activités & Défis</h3>
+  <div class="activities">
+    <div class="activity">
+      <div class="act-icon act-icon--quiz"><mat-icon>quiz</mat-icon></div>
+      <div><strong>Quiz & Questions</strong><span>Testez vos connaissances</span></div>
+      <mat-icon class="chevron">chevron_right</mat-icon>
+    </div>
+    <div class="activity">
+      <div class="act-icon act-icon--story"><mat-icon>book</mat-icon></div>
+      <div><strong>Histoires (Story)</strong><span>Lisez des textes interactifs</span></div>
+      <mat-icon class="chevron">chevron_right</mat-icon>
+    </div>
+    <div class="activity">
+      <div class="act-icon act-icon--multi"><mat-icon>groups</mat-icon></div>
+      <div><strong>Multijoueur</strong><span>Défiez d'autres apprenants</span></div>
+      <mat-icon class="chevron">chevron_right</mat-icon>
+    </div>
+  </div>
+  <h3 class="section-title">Mon Parcours</h3>
+  <div class="progress-card">
+    <div class="progress-ring">
+      <svg viewBox="0 0 36 36">
+        <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+        <path class="ring-fill" [attr.stroke-dasharray]="progressPercent + ', 100'" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+      </svg>
+      <span>{{ progressPercent }}%</span>
+    </div>
+    <div>
+      <strong>Niveau A2 en cours</strong>
+      <span>{{ lessonsThisWeek }} leçons cette semaine</span>
+    </div>
+  </div>
+</div>

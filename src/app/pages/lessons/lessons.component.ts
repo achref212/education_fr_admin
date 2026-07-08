@@ -52,11 +52,13 @@ export class LessonsComponent implements OnInit {
   async ngOnInit(): Promise<void> { await this.reload(); }
 
   get canEdit(): boolean {
-    return this.auth.user()?.role === 'admin';
+    const role = this.auth.user()?.role;
+    return role === 'admin' || role === 'prof';
   }
 
   get canDelete(): boolean {
-    return this.auth.user()?.role === 'admin';
+    const role = this.auth.user()?.role;
+    return role === 'admin' || role === 'prof';
   }
 
   async reload(): Promise<void> {
@@ -121,7 +123,8 @@ export class LessonsComponent implements OnInit {
       this.dialog.open(ConfirmDialogComponent, { data, width: '380px' }).afterClosed()
     );
     if (!ok) return;
-    await this.api.delete(`/admin/lessons/${row.id}`);
+    const base = this.auth.isProf() ? '/prof/lessons' : '/admin/lessons';
+    await this.api.delete(`${base}/${row.id}`);
     await this.reload();
   }
 }

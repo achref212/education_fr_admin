@@ -1,8 +1,13 @@
 import { Routes } from '@angular/router';
 
-import { adminAuthGuard, loginPageGuard } from './core/auth/auth.guard';
+import { adminAuthGuard, adminRoleGuard, loginPageGuard, schoolRoleGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
+  {
+    path: 'copy',
+    loadComponent: () =>
+      import('./pages/copy/copy.component').then((m) => m.CopyComponent),
+  },
   {
     path: 'login',
     canActivate: [loginPageGuard],
@@ -23,6 +28,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent,
+          ),
+      },
+      {
+        path: 'students',
+        canActivate: [schoolRoleGuard],
+        loadComponent: () =>
+          import('./pages/school-students/school-students.component').then(
+            (m) => m.SchoolStudentsComponent,
+          ),
+      },
+      {
+        path: 'professors',
+        canActivate: [schoolRoleGuard],
+        loadComponent: () =>
+          import('./pages/school-professors/school-professors.component').then(
+            (m) => m.SchoolProfessorsComponent,
           ),
       },
       {
@@ -70,6 +91,49 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/multiplayer/multiplayer.component').then(
             (m) => m.MultiplayerComponent,
+          ),
+      },
+      {
+        path: 'learning-paths',
+        loadComponent: () =>
+          import('./pages/learning-paths/learning-paths.component').then(
+            (m) => m.LearningPathsComponent,
+          ),
+      },
+      {
+        path: 'games',
+        loadComponent: () =>
+          import('./pages/games/games.component').then(
+            (m) => m.GamesComponent,
+          ),
+      },
+      {
+        path: 'delf-tests',
+        loadComponent: () =>
+          import('./pages/delf-tests/delf-tests.component').then(
+            (m) => m.DelfTestsComponent,
+          ),
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./pages/profile/profile.component').then(
+            (m) => m.ProfileComponent,
+          ),
+      },
+      {
+        path: 'schools',
+        loadComponent: () =>
+          import('./pages/schools/schools.component').then(
+            (m) => m.SchoolsComponent,
+          ),
+      },
+      {
+        path: 'app-preview',
+        canActivate: [adminRoleGuard],
+        loadComponent: () =>
+          import('./pages/app-preview/app-preview.component').then(
+            (m) => m.AppPreviewComponent,
           ),
       },
     ],

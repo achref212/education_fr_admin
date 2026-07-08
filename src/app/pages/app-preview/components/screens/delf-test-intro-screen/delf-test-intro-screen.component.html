@@ -1,0 +1,42 @@
+<div class="screen" [ngClass]="'screen--' + theme">
+  <div class="hero">
+    <div class="hero-icon">
+      <mat-icon>assignment</mat-icon>
+    </div>
+    <h1>Test de niveau DELF</h1>
+    <p>Évaluez votre niveau de français pour personnaliser votre parcours d'apprentissage.</p>
+  </div>
+  <div class="target-badge">
+    <mat-icon>flag</mat-icon>
+    <div>
+      <span class="label">Objectif pour votre classe</span>
+      <strong>Niveau A2</strong>
+    </div>
+  </div>
+  <div class="info-cards">
+    <div class="info-card">
+      <mat-icon>schedule</mat-icon>
+      <span>~20 minutes</span>
+    </div>
+    <div class="info-card">
+      <mat-icon>category</mat-icon>
+      <span>6 sections</span>
+    </div>
+    <div class="info-card">
+      <mat-icon>quiz</mat-icon>
+      <span>30 questions</span>
+    </div>
+  </div>
+  <div class="sections-preview">
+    <span class="section-label">Sections évaluées</span>
+    <div class="section-chips">
+      <span>Grammaire</span>
+      <span>Conjugaison</span>
+      <span>Orthographe</span>
+      <span>Vocabulaire</span>
+      <span>Lecture</span>
+      <span>Dictée</span>
+    </div>
+  </div>
+  <button type="button" class="cta">Commencer le test</button>
+</div>

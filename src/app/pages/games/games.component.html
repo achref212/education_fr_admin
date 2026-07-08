@@ -1,0 +1,73 @@
+<div class="page-header">
+  <div class="ph-text">
+    <h1 class="ph-title">
+      <mat-icon class="ph-icon" style="color:#c084fc">sports_esports</mat-icon>
+      Jeux multijoueur
+    </h1>
+    <p class="ph-sub">Catalogue des jeux disponibles pour les activités entre élèves (quiz duel, défis entre amis)</p>
+  </div>
+  <div class="ph-actions">
+    <button class="btn-add" style="background:linear-gradient(135deg,#a855f7,#7c3aed)" (click)="openCreate()">
+      <mat-icon>add</mat-icon> Nouveau jeu
+    </button>
+  </div>
+</div>
+
+<div class="search-bar">
+  <mat-icon>search</mat-icon>
+  <input placeholder="Rechercher par nom ou slug…" [(ngModel)]="searchTerm" (input)="applyFilter()" />
+  @if (searchTerm) {
+    <mat-icon class="search-clear" (click)="searchTerm='';applyFilter()">close</mat-icon>
+  }
+</div>
+
+<div class="table-wrap">
+  @if (loading()) {
+    <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <mat-icon>sports_esports</mat-icon>
+      <p>Aucun jeu configuré</p>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Jeu</th>
+          <th>Slug</th>
+          <th>Joueurs</th>
+          <th>Questions</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (g of paginated(); track g.id) {
+          <tr>
+            <td>
+              <div class="cell-primary">
+                <div class="cell-avatar" style="background:linear-gradient(135deg,#a855f7,#7c3aed)">
+                  <mat-icon style="font-size:16px;width:16px;height:16px">sports_esports</mat-icon>
+                </div>
+                <div>
+                  <div>{{ g.name }}</div>
+                  <div class="cell-muted">{{ g.description || '—' }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="cell-code">{{ g.slug }}</span></td>
+            <td>{{ g.minPlayers }} – {{ g.maxPlayers }}</td>
+            <td>{{ g.defaultQuestionCount }}</td>
+            <td>
+              <div class="actions-cell">
+                <button class="action-btn edit" (click)="openEdit(g); $event.stopPropagation()" title="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <div class="table-footer"><span>{{ filtered().length }} jeu(x)</span></div>
+  }
+</div>

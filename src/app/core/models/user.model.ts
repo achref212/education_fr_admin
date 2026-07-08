@@ -5,10 +5,13 @@ export interface UserOut {
   lastName?: string;
   name?: string; // used for school
   level?: string;
+  classLevel?: string;
   createdAt: string;
   role: string;
   isActive: boolean;
   mustChangePassword?: boolean;
+  phone?: string;
+  dateOfBirth?: string;
 }
 
 export interface AdminUserOut extends UserOut {
@@ -29,6 +32,22 @@ export interface SchoolOut {
   postalCode?: string;
   phone?: string;
   directorName?: string;
+}
+
+export interface ProfCreateOut {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  plainPassword: string;
+  phone?: string;
+  dateOfBirth?: string;
+}
+
+export interface SchoolStats {
+  studentCount: number;
+  professorCount: number;
+  activeStudents: number;
 }
 
 export interface TokenResponse {

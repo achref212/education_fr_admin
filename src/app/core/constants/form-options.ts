@@ -1,10 +1,12 @@
 export const LEVELS: string[] = [
-  '1ère année primaire',
-  '2e année primaire',
-  '3e année primaire',
-  '4e année primaire',
-  '5e année primaire',
-  '6e année primaire',
+  '2ème année',
+  '3ème année',
+  '4ème année',
+  '5ème année',
+  '6ème année',
+  '7ème année',
+  '8ème année',
+  '9ème année',
 ];
 
 export const LESSON_CATEGORIES: string[] = [

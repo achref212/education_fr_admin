@@ -1,0 +1,143 @@
+@import '../../../styles/preview-tokens';
+
+.screen {
+  @include preview-screen-base;
+  padding: 20px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &--light { @include preview-theme-vars(light); }
+  &--dark { @include preview-theme-vars(dark); }
+}
+
+.hero {
+  text-align: center;
+  padding-top: 16px;
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 16px 0 8px;
+    color: var(--pv-text);
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--pv-text-muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.hero-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--pv-primary), var(--pv-primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 122, 255, 0.35);
+
+  mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    color: var(--pv-on-primary);
+  }
+}
+
+.target-badge {
+  @include preview-card;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+
+  mat-icon {
+    color: var(--pv-primary);
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .label {
+    display: block;
+    font-size: 11px;
+    color: var(--pv-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  strong {
+    font-size: 18px;
+    color: var(--pv-primary);
+  }
+}
+
+.info-cards {
+  display: flex;
+  gap: 8px;
+}
+
+.info-card {
+  flex: 1;
+  @include preview-card;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--pv-text-muted);
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: var(--pv-primary);
+  }
+}
+
+.sections-preview {
+  .section-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pv-text-muted);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.section-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  span {
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: var(--pv-surface-primary);
+    color: var(--pv-primary);
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+.cta {
+  margin-top: auto;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  background: var(--pv-primary);
+  color: var(--pv-on-primary);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: default;
+  box-shadow: 0 4px 16px rgba(0, 122, 255, 0.35);
+}

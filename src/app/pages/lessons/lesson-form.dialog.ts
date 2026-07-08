@@ -18,6 +18,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { LessonOut } from '../../core/models/lesson.model';
 import { ApiService } from '../../core/http/api.service';
+import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { LEVELS, LESSON_CATEGORIES } from '../../core/constants/form-options';
 
 export type LessonFormData = { lesson?: LessonOut | null };
@@ -129,6 +130,7 @@ export type LessonFormData = { lesson?: LessonOut | null };
 })
 export class LessonFormDialogComponent {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AdminAuthService);
   private readonly fb  = inject(FormBuilder);
 
   readonly levels     = LEVELS;
@@ -140,7 +142,7 @@ export class LessonFormDialogComponent {
     title:     ['', Validators.required],
     content:   ['', Validators.required],
     category:  [LESSON_CATEGORIES[0], Validators.required],
-    level:     [LEVELS[1], Validators.required],
+    level:     [LEVELS[0], Validators.required],
     sortOrder: [0, Validators.required],
   });
 
@@ -165,10 +167,12 @@ export class LessonFormDialogComponent {
     try {
       const v = this.form.getRawValue();
       const body = { title: v.title, content: v.content, category: v.category, level: v.level, sortOrder: v.sortOrder };
+      const isProf = this.auth.isProf();
+      const base = isProf ? '/prof/lessons' : '/admin/lessons';
       if (this.data.lesson) {
-        await this.api.put<LessonOut>(`/admin/lessons/${this.data.lesson.id}`, body);
+        await this.api.put<LessonOut>(`${base}/${this.data.lesson.id}`, body);
       } else {
-        await this.api.post<LessonOut>('/admin/lessons', body);
+        await this.api.post<LessonOut>(base, body);
       }
       this.dialogRef.close(true);
     } catch {

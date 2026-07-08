@@ -1,0 +1,113 @@
+<div class="page-header">
+  <div class="ph-text">
+    <h1 class="ph-title">
+      <mat-icon class="ph-icon" style="color:#818cf8">school</mat-icon>
+      Élèves
+    </h1>
+    <p class="ph-sub">Liste des élèves inscrits, niveau scolaire, parcours DELF et progression</p>
+  </div>
+</div>
+
+<div class="search-bar">
+  <mat-icon>search</mat-icon>
+  <input placeholder="Rechercher par nom ou e-mail…"
+         [(ngModel)]="searchTerm" (input)="applyFilter()" />
+  @if (searchTerm) {
+    <mat-icon class="search-clear" (click)="searchTerm='';applyFilter()">close</mat-icon>
+  }
+</div>
+
+<div class="table-wrap">
+  @if (loading()) {
+    <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <mat-icon>school</mat-icon>
+      <p>Aucun élève inscrit pour le moment</p>
+      <span class="empty-hint">Les élèves s'inscrivent via l'application mobile en sélectionnant votre établissement.</span>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Élève</th>
+          <th>E-mail</th>
+          <th>Classe</th>
+          <th>Niveau</th>
+          <th>Leçons</th>
+          <th>Quiz</th>
+          <th>Score moyen</th>
+          <th>Progression</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of paginated(); track row.user.id) {
+          <tr (click)="openDetail(row)">
+            <td>
+              <div class="cell-primary">
+                <div class="cell-avatar" [style.background]="avatarColor(row.user.firstName)">
+                  {{ (row.user.firstName || '?')[0] }}{{ (row.user.lastName || '')[0] || '' }}
+                </div>
+                <div>
+                  <div>{{ row.user.firstName || '' }} {{ row.user.lastName || '' }}</div>
+                  <div class="cell-muted">{{ row.user.isActive ? 'Actif' : 'Inactif' }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="cell-muted">{{ row.user.email }}</td>
+            <td><span class="cell-code">{{ row.user.classLevel || '—' }}</span></td>
+            <td><span class="cell-code">{{ row.user.level || '—' }}</span></td>
+            <td>
+              <span class="metric-pill metric-pill--lessons">
+                <mat-icon>menu_book</mat-icon>{{ lessonsCount(row) }}
+              </span>
+            </td>
+            <td>
+              <span class="metric-pill metric-pill--quiz">
+                <mat-icon>quiz</mat-icon>{{ quizCount(row) }}
+              </span>
+            </td>
+            <td>
+              @if (avgScore(row) !== null) {
+                <span class="score-badge" [class.score-good]="avgScore(row)! >= 70" [class.score-bad]="avgScore(row)! < 50">
+                  {{ avgScore(row) }}%
+                </span>
+              } @else {
+                <span class="cell-muted">—</span>
+              }
+            </td>
+            <td>
+              <div class="mini-bar-wrap">
+                <div class="mini-bar" [style.width]="progressPct(row) + '%'"></div>
+              </div>
+              <span class="cell-muted pct-label">{{ progressPct(row) }}%</span>
+            </td>
+            <td>
+              <button class="action-btn view" (click)="openDetail(row); $event.stopPropagation()" title="Parcours DELF">
+                <mat-icon>route</mat-icon>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="page-btn" (click)="setPage(0)" [disabled]="pageIndex === 0"><mat-icon>first_page</mat-icon></button>
+        <button class="page-btn" (click)="setPage(pageIndex - 1)" [disabled]="pageIndex === 0"><mat-icon>chevron_left</mat-icon></button>
+        @for (p of pages(); track p) {
+          @if (p >= pageIndex - 2 && p <= pageIndex + 2) {
+            <button class="page-btn" [class.active]="p === pageIndex" (click)="setPage(p)">{{ p + 1 }}</button>
+          }
+        }
+        <button class="page-btn" (click)="setPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>chevron_right</mat-icon></button>
+        <button class="page-btn" (click)="setPage(totalPages() - 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>last_page</mat-icon></button>
+        <span class="page-info">{{ pageIndex + 1 }} / {{ totalPages() }}</span>
+      </div>
+    }
+    <div class="table-footer">
+      <span>{{ filtered().length }} élève(s)</span>
+    </div>
+  }
+</div>

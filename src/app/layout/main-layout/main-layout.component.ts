@@ -15,6 +15,9 @@ interface NavItem {
   path: string;
   icon: string;
   gradient: string;
+  adminOnly?: boolean;
+  schoolOnly?: boolean;
+  profOnly?: boolean;
 }
 
 @Component({
@@ -50,13 +53,13 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   get filteredNav(): NavItem[] {
     const role = this.auth.user()?.role;
     if (role === 'admin') {
-      return this.nav;
+      return this.nav.filter(n => !n.schoolOnly && !n.profOnly);
     }
     if (role === 'school') {
-      return this.nav.filter(n => ['Tableau de bord', 'Utilisateurs'].includes(n.label));
+      return this.nav.filter(n => n.schoolOnly || n.path === '/dashboard');
     }
     if (role === 'prof') {
-      return this.nav.filter(n => ['Tableau de bord', 'Utilisateurs', 'Leçons', 'Multijoueur'].includes(n.label));
+      return this.nav.filter(n => n.profOnly || n.path === '/dashboard' || (!n.adminOnly && !n.schoolOnly && ['Leçons', 'Multijoueur', 'Élèves'].includes(n.label)));
     }
     return [];
   }
@@ -81,13 +84,21 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   readonly nav: NavItem[] = [
     { label: 'Tableau de bord', path: '/dashboard',        icon: 'dashboard',       gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
+    { label: 'Élèves',          path: '/students',         icon: 'school',          gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', schoolOnly: true },
+    { label: 'Professeurs',     path: '/professors',       icon: 'badge',           gradient: 'linear-gradient(135deg,#6366f1,#a855f7)', schoolOnly: true },
+    { label: 'Élèves',          path: '/users',             icon: 'people',          gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)', profOnly: true },
     { label: 'Utilisateurs',    path: '/users',             icon: 'people',          gradient: 'linear-gradient(135deg,#06b6d4,#3b82f6)' },
     { label: 'Leçons',          path: '/lessons',           icon: 'menu_book',       gradient: 'linear-gradient(135deg,#10b981,#34d399)' },
     { label: 'Quiz',            path: '/quiz-questions',    icon: 'quiz',            gradient: 'linear-gradient(135deg,#f59e0b,#fbbf24)' },
     { label: 'Histoires',       path: '/stories',           icon: 'auto_stories',    gradient: 'linear-gradient(135deg,#ec4899,#f43f5e)' },
     { label: 'Progression',     path: '/progress',          icon: 'trending_up',     gradient: 'linear-gradient(135deg,#10b981,#06b6d4)' },
+    { label: 'Parcours DELF',   path: '/learning-paths',  icon: 'route',           gradient: 'linear-gradient(135deg,#6366f1,#06b6d4)', adminOnly: true },
+    { label: 'Tests DELF',      path: '/delf-tests',      icon: 'assignment',      gradient: 'linear-gradient(135deg,#6366f1,#ec4899)', adminOnly: true },
+    { label: 'Jeux',            path: '/games',             icon: 'sports_esports',  gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)', adminOnly: true },
     { label: 'Messages',        path: '/contact-messages',  icon: 'mail',            gradient: 'linear-gradient(135deg,#f97316,#fb923c)' },
     { label: 'Multijoueur',     path: '/multiplayer',       icon: 'groups',          gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
+    { label: 'Établissements',  path: '/schools',           icon: 'school',          gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', adminOnly: true },
+    { label: 'Aperçu App',      path: '/app-preview',       icon: 'smartphone',      gradient: 'linear-gradient(135deg,#007AFF,#6366f1)', adminOnly: true },
   ];
 
   ngOnInit(): void {
@@ -128,6 +139,14 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   private _syncTitle(): void {
     const url = this.router.url;
+    if (url.startsWith('/profile')) {
+      this.currentPageTitle = 'Mon profil';
+      return;
+    }
+    if (url.startsWith('/app-preview')) {
+      this.currentPageTitle = 'Aperçu de l\'application';
+      return;
+    }
     const match = this.nav.find(n => url.startsWith(n.path));
     this.currentPageTitle = match?.label ?? 'Administration';
   }

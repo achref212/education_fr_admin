@@ -1,0 +1,21 @@
+<div class="copy-page">
+  <div class="copy-card">
+    <div class="copy-logo">
+      <img src="icon.png" alt="DELFy" />
+    </div>
+    <h1>Copier le contenu</h1>
+
+    @if (hasValue()) {
+      <p class="copy-hint">Cliquez sur le bouton pour copier dans le presse-papiers.</p>
+      <div class="value-box">{{ value() }}</div>
+      <button type="button" class="copy-btn" (click)="handleCopy()">
+        <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+        {{ copied() ? 'Copié !' : 'Copier' }}
+      </button>
+    } @else {
+      <p class="copy-error">Lien invalide ou expiré.</p>
+    }
+
+    <a routerLink="/login" class="back-login">Retour à la connexion</a>
+  </div>
+</div>

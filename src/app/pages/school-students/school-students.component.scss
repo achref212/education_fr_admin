@@ -1,0 +1,59 @@
+@use '../../shared/table';
+
+.empty-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--clr-text-muted);
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+.metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 13px;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+  &--lessons { color: #6ee7b7; }
+  &--quiz { color: #fbbf24; }
+}
+
+.score-badge {
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(16,185,129,.15);
+  color: #10b981;
+  &.score-good { background: rgba(16,185,129,.15); color: #10b981; }
+  &.score-bad { background: rgba(239,68,68,.15); color: #ef4444; }
+}
+
+.mini-bar-wrap {
+  height: 6px;
+  background: var(--clr-border);
+  border-radius: 99px;
+  width: 80px;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.mini-bar {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg,#10b981,#06b6d4);
+  transition: width .4s ease;
+}
+
+.pct-label {
+  margin-left: 6px;
+  font-size: 11px;
+}
+
+.action-btn.view {
+  color: #2dd4bf;
+  &:hover { background: rgba(16,185,129,.12); }
+}

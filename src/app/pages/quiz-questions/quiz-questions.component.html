@@ -18,7 +18,7 @@
   <input placeholder="Rechercher par question, catégorie ou niveau…"
          [(ngModel)]="searchTerm" (input)="applyFilter()" />
   @if (searchTerm) {
-    <mat-icon style="cursor:pointer;color:rgba(255,255,255,.3)" (click)="searchTerm='';applyFilter()">close</mat-icon>
+    <mat-icon class="search-clear" (click)="searchTerm='';applyFilter()">close</mat-icon>
   }
 </div>
 

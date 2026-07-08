@@ -162,7 +162,7 @@ export class StoryFormDialogComponent {
   form = this.fb.nonNullable.group({
     title:    ['', Validators.required],
     content:  ['', Validators.required],
-    level:    [LEVELS[1], Validators.required],
+    level:    [LEVELS[0], Validators.required],
     audioUrl: [''],
   });
 

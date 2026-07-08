@@ -1,0 +1,32 @@
+<div class="screen" [ngClass]="'screen--' + theme">
+  <div class="result-hero">
+    <div class="trophy">
+      <mat-icon>emoji_events</mat-icon>
+    </div>
+    <h1>Félicitations !</h1>
+    <p>Votre niveau DELF estimé</p>
+    <div class="level-badge">A2</div>
+  </div>
+  <div class="comparison">
+    <mat-icon>check_circle</mat-icon>
+    <span>Objectif atteint — vous êtes au niveau attendu pour la 7ème année</span>
+  </div>
+  <div class="score-overall">
+    <span>Score global</span>
+    <strong>77%</strong>
+  </div>
+  <div class="categories">
+    @for (cat of categories; track cat.name) {
+      <div class="cat-row">
+        <div class="cat-head">
+          <span>{{ cat.name }}</span>
+          <strong>{{ cat.score }}%</strong>
+        </div>
+        <div class="cat-bar">
+          <div class="cat-fill" [style.width.%]="cat.score"></div>
+        </div>
+      </div>
+    }
+  </div>
+  <button type="button" class="cta">Continuer vers l'accueil</button>
+</div>
