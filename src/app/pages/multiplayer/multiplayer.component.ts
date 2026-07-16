@@ -7,6 +7,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { MultiplayerRoomOut } from '../../core/models/room.model';
 import { ApiService } from '../../core/http/api.service';
+import { SortableTableDirective } from '../../shared/sortable-table.directive';
 import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { DetailDialogComponent, DetailDialogData } from '../../shared/detail-dialog/detail-dialog.component';
 import { RoomCreateDialogComponent } from './room-create.dialog';
@@ -14,7 +15,7 @@ import { RoomCreateDialogComponent } from './room-create.dialog';
 @Component({
   selector: 'app-multiplayer',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe, MatIconModule, MatProgressSpinnerModule, MatDialogModule],
+  imports: [CommonModule, FormsModule, DatePipe, MatIconModule, MatProgressSpinnerModule, MatDialogModule, SortableTableDirective],
   templateUrl: './multiplayer.component.html',
   styleUrl: './multiplayer.component.scss',
 })
@@ -31,7 +32,7 @@ export class MultiplayerComponent implements OnInit {
   pageSize   = 10;
   pageIndex  = 0;
 
-  readonly paginated  = computed(() => this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize));
+  paginated(): MultiplayerRoomOut[] { return this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize); }
   readonly totalPages = computed(() => Math.ceil(this.filtered().length / this.pageSize));
 
   get isProf(): boolean {
@@ -63,7 +64,7 @@ export class MultiplayerComponent implements OnInit {
     this.pageIndex = 0;
   }
 
-  setPage(p: number): void { this.pageIndex = p; }
+  setPage(p: number): void { this.pageIndex = Math.max(0, Math.min(p, this.totalPages() - 1)); }
   pages(): number[] { return Array.from({ length: this.totalPages() }, (_, i) => i); }
 
   openCreate(): void {

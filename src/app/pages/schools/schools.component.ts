@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { SchoolOut } from '../../core/models/user.model';
 import { ApiService } from '../../core/http/api.service';
+import { SortableTableDirective } from '../../shared/sortable-table.directive';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { SchoolCreateDialogComponent } from './school-create.dialog';
 import { SchoolDetailDialogComponent } from './school-detail.dialog';
@@ -16,6 +17,7 @@ import { SchoolDetailDialogComponent } from './school-detail.dialog';
   selector: 'app-schools',
   standalone: true,
   imports: [
+    SortableTableDirective,
     CommonModule, FormsModule, DatePipe, SlicePipe,
     MatIconModule, MatProgressSpinnerModule, MatDialogModule,
   ],
@@ -34,9 +36,9 @@ export class SchoolsComponent implements OnInit {
   pageSize   = 10;
   pageIndex  = 0;
 
-  readonly paginated  = computed(() =>
-    this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize)
-  );
+  paginated(): SchoolOut[] {
+    return this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize);
+  }
   readonly totalPages = computed(() =>
     Math.ceil(this.filtered().length / this.pageSize)
   );
@@ -68,7 +70,7 @@ export class SchoolsComponent implements OnInit {
     this.pageIndex = 0;
   }
 
-  setPage(p: number): void { this.pageIndex = p; }
+  setPage(p: number): void { this.pageIndex = Math.max(0, Math.min(p, this.totalPages() - 1)); }
   pages(): number[] { return Array.from({ length: this.totalPages() }, (_, i) => i); }
 
   avatarLetter(s: SchoolOut): string {

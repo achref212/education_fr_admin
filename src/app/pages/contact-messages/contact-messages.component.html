@@ -30,14 +30,14 @@
       <p>Aucun message trouvé</p>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Expéditeur</th>
-          <th>Sujet</th>
-          <th>Message</th>
-          <th>Statut</th>
+          <th data-sort-key="createdAt">Date</th>
+          <th data-sort-key="name">Expéditeur</th>
+          <th data-sort-key="subject">Sujet</th>
+          <th data-sort-key="message">Message</th>
+          <th data-sort-key="read">Statut</th>
           <th></th>
         </tr>
       </thead>

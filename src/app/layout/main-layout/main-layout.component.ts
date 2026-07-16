@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, HostListener, inject, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { animate, style, transition, trigger } from '@angular/animations';
@@ -46,8 +46,10 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   private _sub?: Subscription;
 
   sidebarCollapsed = false;
+  mobileNavOpen = false;
   currentPageTitle = 'Tableau de bord';
   currentTime = '';
+  currentDate = '';
   private _timer?: ReturnType<typeof setInterval>;
 
   get filteredNav(): NavItem[] {
@@ -82,6 +84,25 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     return 'Administrateur';
   }
 
+  get roleIcon(): string {
+    const role = this.auth.user()?.role;
+    if (role === 'school') return 'school';
+    if (role === 'prof') return 'co_present';
+    return 'admin_panel_settings';
+  }
+
+  get roleAccent(): string {
+    const role = this.auth.user()?.role;
+    if (role === 'school') return 'var(--role-school)';
+    if (role === 'prof') return 'var(--role-prof)';
+    return 'var(--role-admin)';
+  }
+
+  get userInitials(): string {
+    const words = this.userName.trim().split(/\s+/).filter(Boolean);
+    return words.slice(0, 2).map(word => word.charAt(0).toUpperCase()).join('') || 'D';
+  }
+
   readonly nav: NavItem[] = [
     { label: 'Tableau de bord', path: '/dashboard',        icon: 'dashboard',       gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
     { label: 'Élèves',          path: '/students',         icon: 'school',          gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', schoolOnly: true },
@@ -102,12 +123,15 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    this._updateTime();
-    this._timer = setInterval(() => this._updateTime(), 1000);
+    this._updateDateTime();
+    this._timer = setInterval(() => this._updateDateTime(), 30_000);
 
     this._sub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe(() => this._syncTitle());
+      .subscribe(() => {
+        this._syncTitle();
+        this.closeMobileNav();
+      });
     this._syncTitle();
 
     if (this.auth.user()?.mustChangePassword) {
@@ -124,16 +148,40 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   }
 
   toggleSidebar(): void {
+    if (window.matchMedia('(max-width: 1024px)').matches) {
+      this.sidebarCollapsed = false;
+      this.mobileNavOpen = !this.mobileNavOpen;
+      return;
+    }
     this.sidebarCollapsed = !this.sidebarCollapsed;
+  }
+
+  closeMobileNav(): void {
+    this.mobileNavOpen = false;
   }
 
   logout(): void {
     this.auth.logout();
   }
 
-  private _updateTime(): void {
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeMobileNav();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    if (!window.matchMedia('(max-width: 1024px)').matches) {
+      this.closeMobileNav();
+    }
+  }
+
+  private _updateDateTime(): void {
     this.currentTime = new Date().toLocaleTimeString('fr-FR', {
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour: '2-digit', minute: '2-digit',
+    });
+    this.currentDate = new Date().toLocaleDateString('fr-FR', {
+      weekday: 'short', day: 'numeric', month: 'short',
     });
   }
 
@@ -147,7 +195,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
       this.currentPageTitle = 'Aperçu de l\'application';
       return;
     }
-    const match = this.nav.find(n => url.startsWith(n.path));
+    const match = this.filteredNav.find(n => url.startsWith(n.path));
     this.currentPageTitle = match?.label ?? 'Administration';
   }
 }

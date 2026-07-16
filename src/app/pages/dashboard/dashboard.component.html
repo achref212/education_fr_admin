@@ -1,162 +1,175 @@
-<!-- welcome banner -->
-<div class="welcome-banner anim-fade-up">
-  <div class="wb-brand">
-    <img src="icon.png" alt="DELFy" class="wb-logo" />
-    <div class="wb-text">
-      <span class="wb-greeting">Bonjour, {{ userName }} 👋</span>
-      <h1 class="wb-title">Tableau de bord DELFy</h1>
-      <p class="wb-sub">{{ auth.isSchool() ? 'Suivez vos élèves, leur parcours DELF et vos professeurs' : auth.isProf() ? 'Parcours DELF, leçons et quiz multijoueur pour vos classes' : 'Vue d\'ensemble de votre plateforme d\'apprentissage' }}</p>
-    </div>
-  </div>
-  <div class="wb-badge">
-    <img src="icon.png" alt="" class="wb-badge-logo" />
-    {{ auth.user()?.role === 'school' ? 'Établissement' : auth.user()?.role === 'prof' ? 'Professeur' : 'Administrateur' }}
-  </div>
-</div>
-
-@if (loading()) {
-  <div class="loader-center">
-    <div class="fancy-loader">
-      <div class="loader-ring"></div>
-      <img src="icon.png" alt="DELFy" class="loader-icon" />
-    </div>
-    <p>Chargement des données…</p>
-  </div>
-} @else {
-  @if (error()) {
-    <div class="alert-error anim-scale-in">
-      <mat-icon>error_outline</mat-icon>{{ error() }}
-    </div>
-  } @else {
-    @if (stats(); as s) {
-
-      @if (auth.isAdmin()) {
-        <!-- KPI grid -->
-        <div class="kpi-grid">
-          @for (card of kpiCards(s); track card.label; let i = $index) {
-            <app-stat-card
-              [label]="card.label"
-              [value]="card.value"
-              [hint]="card.hint ?? ''"
-              [style.animation-delay]="(i * 80) + 'ms'"
-            />
-          }
-        </div>
-
-        <!-- charts row -->
-        <div class="charts-row">
-          <div class="chart-card anim-fade-up" style="animation-delay:200ms">
-            <div class="chart-header">
-              <div class="chart-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                <mat-icon>bar_chart</mat-icon>
-              </div>
-              <div>
-                <h3>Utilisateurs par niveau</h3>
-                <p>Distribution des apprenants</p>
-              </div>
-            </div>
-            <div class="chart-body">
-              <canvas
-                baseChart
-                [type]="usersByLevelChart.type"
-                [data]="usersByLevelChart.data"
-                [options]="usersByLevelChart.options">
-              </canvas>
-            </div>
-          </div>
-
-          <div class="chart-card anim-fade-up" style="animation-delay:320ms">
-            <div class="chart-header">
-              <div class="chart-icon" style="background:linear-gradient(135deg,#ec4899,#f97316)">
-                <mat-icon>donut_large</mat-icon>
-              </div>
-              <div>
-                <h3>Leçons par catégorie</h3>
-                <p>Répartition du contenu</p>
-              </div>
-            </div>
-            <div class="chart-body chart-body--donut">
-              <canvas
-                baseChart
-                [type]="lessonsByCategoryChart.type"
-                [data]="lessonsByCategoryChart.data"
-                [options]="lessonsByCategoryChart.options">
-              </canvas>
-            </div>
-          </div>
-        </div><!-- charts-row -->
+<div class="dashboard" [class.school-dashboard]="auth.isSchool()" [class.prof-dashboard]="auth.isProf()">
+  <section class="hero-panel anim-fade-up" aria-labelledby="dashboard-title">
+    <div class="hero-orb hero-orb--one"></div>
+    <div class="hero-orb hero-orb--two"></div>
+    <div class="hero-copy">
+      <div class="role-pill"><mat-icon>{{ roleIcon }}</mat-icon>{{ roleLabel }}</div>
+      <p class="hero-greeting">Bonjour {{ userName }} <span aria-hidden="true">👋</span></p>
+      <h1 id="dashboard-title">{{ heroTitle }}</h1>
+      <p class="hero-description">{{ heroDescription }}</p>
+      <div class="hero-actions">
+        <a class="hero-primary-action" [routerLink]="primaryAction.route">
+          <mat-icon>{{ primaryAction.icon }}</mat-icon>
+          {{ primaryAction.label }}
+          <mat-icon class="action-arrow">arrow_forward</mat-icon>
+        </a>
+        <a class="hero-secondary-action" routerLink="/profile">
+          <mat-icon>tune</mat-icon>Mon profil
+        </a>
+        <button class="hero-refresh-action" type="button" (click)="loadDashboard(false)" [disabled]="refreshing()">
+          <mat-icon [class.is-spinning]="refreshing()">refresh</mat-icon>
+          {{ refreshing() ? 'Actualisation…' : 'Actualiser' }}
+        </button>
+      </div>
+      @if (lastUpdated(); as updated) {
+        <p class="dashboard-updated"><mat-icon>schedule</mat-icon>Données actualisées à {{ updated | date:'HH:mm' }}</p>
       }
+    </div>
 
-      @if (auth.isSchool()) {
-        <div class="kpi-grid">
-          @for (card of schoolKpiCards; track card.label; let i = $index) {
-            <app-stat-card
-              [label]="card.label"
-              [value]="card.value"
-              [hint]="card.hint ?? ''"
-              [style.animation-delay]="(i * 80) + 'ms'"
-            />
-          }
-        </div>
-      }
-
-      @if (auth.isProf()) {
-        <div class="kpi-grid">
-          @for (card of profKpiCards; track card.label; let i = $index) {
-            <app-stat-card
-              [label]="card.label"
-              [value]="card.value"
-              [hint]="card.hint ?? ''"
-              [style.animation-delay]="(i * 80) + 'ms'"
-            />
-          }
-        </div>
-      }
-
-      <!-- modules description grid -->
-      <div class="modules-section anim-fade-up" style="animation-delay:400ms">
-        <h2 class="section-title">{{ auth.isSchool() ? 'Gestion de l\'établissement' : auth.isProf() ? 'Espace professeur' : 'Modules de gestion' }}</h2>
-        <p class="section-sub">{{ auth.isSchool() ? 'Parcours DELF, progression et gestion des professeurs' : auth.isProf() ? 'Élèves, parcours DELF, leçons et parties multijoueur' : 'Cliquez sur un module pour gérer son contenu' }}</p>
-        <div class="modules-grid">
-          @for (m of filteredModules; track m.label; let i = $index) {
-            <a class="module-card" [routerLink]="m.route"
-               [style.animation-delay]="(400 + i * 60) + 'ms'">
-              <div class="mc-top">
-                <div class="mc-icon" [style.background]="m.gradient">
-                  <mat-icon>{{ m.icon }}</mat-icon>
-                </div>
-                <span class="mc-badge" [style.color]="m.color" [style.background]="m.color + '1a'">
-                  {{ stats() ? m.count(stats()!) : 0 }}
-                </span>
-              </div>
-              <h3 class="mc-title">{{ m.label }}</h3>
-              <p class="mc-desc">{{ m.description }}</p>
-              <div class="mc-footer">
-                <span>Gérer</span>
-                <mat-icon>arrow_forward</mat-icon>
-              </div>
-            </a>
-          }
+    <div class="hero-health" aria-label="Indicateur d’activité">
+      <div class="health-ring" [style.background]="'conic-gradient(var(--role-dashboard-accent) ' + healthRate + '%, color-mix(in srgb, var(--clr-text) 10%, transparent) 0)'">
+        <div class="health-ring__center">
+          <strong>{{ healthRate }}%</strong>
+          <span>actifs</span>
         </div>
       </div>
+      <div class="health-copy">
+        <span>{{ healthLabel }}</span>
+        <strong>{{ healthStatus }}</strong>
+        <small>Données synchronisées avec votre espace</small>
+      </div>
+    </div>
+  </section>
 
-      @if (filteredQuickActions.length) {
-        <div class="quick-actions anim-fade-up" style="animation-delay:520ms">
-          <h2 class="section-title">Accès rapide</h2>
-          <div class="qa-grid">
-            @for (qa of filteredQuickActions; track qa.route) {
-              <a class="qa-card" [routerLink]="qa.route">
-                <div class="qa-icon" [style.background]="qa.gradient">
-                  <mat-icon>{{ qa.icon }}</mat-icon>
-                </div>
-                <span class="qa-label">{{ qa.label }}</span>
-                <mat-icon class="qa-arrow">arrow_forward</mat-icon>
-              </a>
-            }
-          </div>
+  @if (loading()) {
+    <section class="loading-state" aria-live="polite" aria-busy="true">
+      <div class="loader-mark"><img src="icon.png" alt="" /><span></span></div>
+      <h2>Préparation de votre tableau de bord</h2>
+      <p>Nous rassemblons les informations les plus utiles…</p>
+      <div class="skeleton-grid" aria-hidden="true">
+        @for (item of [1, 2, 3, 4]; track item) { <div class="skeleton-card"></div> }
+      </div>
+    </section>
+  } @else if (error()) {
+    <section class="error-state" role="alert">
+      <div class="state-icon"><mat-icon>cloud_off</mat-icon></div>
+      <div>
+        <span>Connexion interrompue</span>
+        <h2>Impossible de charger vos données</h2>
+        <p>{{ error() }}</p>
+      </div>
+      <button type="button" (click)="loadDashboard()"><mat-icon>refresh</mat-icon>Réessayer</button>
+    </section>
+  } @else {
+    <section class="dashboard-section" aria-labelledby="overview-title">
+      <div class="section-heading anim-fade-up">
+        <div>
+          <span class="section-kicker">Vue d’ensemble</span>
+          <h2 id="overview-title">Les chiffres essentiels</h2>
         </div>
-      }
+        <p>Une lecture rapide de l’activité de votre espace.</p>
+      </div>
+      <div class="kpi-grid">
+        @for (card of kpiCards; track card.label; let index = $index) {
+          <app-stat-card
+            [label]="card.label"
+            [value]="card.value"
+            [detail]="card.detail"
+            [icon]="card.icon"
+            [accent]="card.accent"
+            [status]="card.status ?? ''"
+            [route]="card.route ?? ''"
+            [order]="index"
+          />
+        }
+      </div>
+    </section>
 
-    }
+    <section class="dashboard-section" aria-labelledby="analytics-title">
+      <div class="section-heading anim-fade-up">
+        <div>
+          <span class="section-kicker">Analyse</span>
+          <h2 id="analytics-title">Comprendre votre activité</h2>
+        </div>
+        <p>Des indicateurs simples pour guider vos prochaines actions.</p>
+      </div>
+      <div class="charts-grid">
+        <article class="chart-card anim-fade-up">
+          <header class="chart-header">
+            <div class="chart-icon chart-icon--primary"><mat-icon>bar_chart</mat-icon></div>
+            <div><h3>{{ chartTitle }}</h3><p>{{ chartSubtitle }}</p></div>
+          </header>
+          @if (hasLevelData) {
+            <div class="chart-body">
+              <canvas baseChart [type]="levelChart().type" [data]="levelChart().data" [options]="levelChart().options"></canvas>
+            </div>
+            <div class="chart-values" aria-label="Valeurs du graphique">
+              @for (item of levelBreakdown; track item.label) {
+                <span><i [style.background]="item.color"></i>{{ item.label }}<strong>{{ item.value }}</strong></span>
+              }
+            </div>
+          } @else {
+            <div class="chart-empty"><mat-icon>insert_chart_outlined</mat-icon><strong>Aucune donnée disponible</strong><span>Les informations apparaîtront dès les premières inscriptions.</span></div>
+          }
+        </article>
+
+        <article class="chart-card anim-fade-up" style="animation-delay:80ms">
+          <header class="chart-header">
+            <div class="chart-icon chart-icon--secondary"><mat-icon>donut_large</mat-icon></div>
+            <div><h3>{{ statusChartTitle }}</h3><p>{{ statusChartSubtitle }}</p></div>
+          </header>
+          @if (hasStatusData) {
+            <div class="chart-body chart-body--donut">
+              <canvas baseChart [type]="statusChart().type" [data]="statusChart().data" [options]="statusChart().options"></canvas>
+            </div>
+            <div class="chart-values chart-values--center" aria-label="Valeurs du graphique">
+              @for (item of statusBreakdown; track item.label) {
+                <span><i [style.background]="item.color"></i>{{ item.label }}<strong>{{ item.value }}</strong></span>
+              }
+            </div>
+          } @else {
+            <div class="chart-empty"><mat-icon>donut_large</mat-icon><strong>Pas encore de répartition</strong><span>Ajoutez des données pour afficher cette analyse.</span></div>
+          }
+        </article>
+      </div>
+    </section>
+
+    <section class="dashboard-section" aria-labelledby="modules-title">
+      <div class="section-heading anim-fade-up">
+        <div>
+          <span class="section-kicker">Outils</span>
+          <h2 id="modules-title">{{ auth.isSchool() ? 'Gestion de l’établissement' : auth.isProf() ? 'Votre espace pédagogique' : 'Modules de gestion' }}</h2>
+        </div>
+        <p>Accédez directement aux espaces que vous utilisez le plus.</p>
+      </div>
+      <div class="modules-grid">
+        @for (module of modules; track module.label; let index = $index) {
+          <a class="module-card" [routerLink]="module.route" [style.--module-accent]="module.accent" [style.animation-delay]="(index * 55) + 'ms'">
+            <div class="module-topline">
+              <span class="module-icon"><mat-icon>{{ module.icon }}</mat-icon></span>
+              @if (module.count() > 0) { <span class="module-count">{{ module.count() }}</span> }
+            </div>
+            <h3>{{ module.label }}</h3>
+            <p>{{ module.description }}</p>
+            <span class="module-link">Ouvrir le module<mat-icon>arrow_forward</mat-icon></span>
+          </a>
+        }
+      </div>
+    </section>
+
+    <section class="dashboard-section quick-section" aria-labelledby="quick-title">
+      <div class="section-heading anim-fade-up">
+        <div><span class="section-kicker">Raccourcis</span><h2 id="quick-title">Actions rapides</h2></div>
+      </div>
+      <div class="quick-grid">
+        @for (action of quickActions; track action.label; let index = $index) {
+          <a class="quick-card" [routerLink]="action.route" [style.--action-accent]="action.accent" [style.animation-delay]="(index * 60) + 'ms'">
+            <span class="quick-icon"><mat-icon>{{ action.icon }}</mat-icon></span>
+            <span><strong>{{ action.label }}</strong><small>{{ action.description }}</small></span>
+            <mat-icon class="quick-arrow">north_east</mat-icon>
+          </a>
+        }
+      </div>
+    </section>
   }
-}
+</div>

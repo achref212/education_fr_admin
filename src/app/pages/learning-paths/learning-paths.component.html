@@ -32,14 +32,14 @@
       <span class="empty-hint">Exécutez le script seed_parcours.py ou créez un parcours manuellement.</span>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>Parcours</th>
-          <th>Niveau</th>
-          <th>Objectif DELF</th>
-          <th>Statut</th>
-          <th>Créé le</th>
+          <th data-sort-key="title">Parcours</th>
+          <th data-sort-key="classLevel">Niveau</th>
+          <th data-sort-key="delfTargetLevel">Objectif DELF</th>
+          <th data-sort-key="isActive">Statut</th>
+          <th data-sort-key="createdAt">Créé le</th>
           <th></th>
         </tr>
       </thead>

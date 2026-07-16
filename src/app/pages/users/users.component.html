@@ -38,15 +38,15 @@
       <p>Aucun utilisateur trouvé</p>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>Utilisateur</th>
-          <th>E-mail</th>
-          <th>Niveau</th>
-          <th>Rôle</th>
-          <th>Statut</th>
-          <th>Créé le</th>
+          <th data-sort-key="firstName">Utilisateur</th>
+          <th data-sort-key="email">E-mail</th>
+          <th data-sort-key="level">Niveau</th>
+          <th data-sort-key="role">Rôle</th>
+          <th data-sort-key="isActive">Statut</th>
+          <th data-sort-key="createdAt">Créé le</th>
           <th></th>
         </tr>
       </thead>

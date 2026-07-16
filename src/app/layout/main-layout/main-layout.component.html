@@ -1,64 +1,89 @@
-<div class="app-shell">
+<a class="skip-link" href="#main-content">Aller au contenu principal</a>
 
-  <!-- ══ SIDEBAR ══════════════════════════════════════════════════════════ -->
-  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+<div class="app-shell" [style.--role-accent]="roleAccent">
+  <button
+    class="sidebar-backdrop"
+    type="button"
+    [class.visible]="mobileNavOpen"
+    [attr.aria-hidden]="!mobileNavOpen"
+    [attr.tabindex]="mobileNavOpen ? 0 : -1"
+    aria-label="Fermer le menu"
+    (click)="closeMobileNav()"
+  ></button>
 
-    <!-- brand -->
+  <aside
+    id="primary-navigation"
+    class="sidebar"
+    [class.collapsed]="sidebarCollapsed"
+    [class.mobile-open]="mobileNavOpen"
+    aria-label="Navigation principale"
+  >
     <div class="sidebar-brand">
-      <div class="brand-logo">
-        <img src="icon.png" alt="DELFy" class="brand-logo-img" />
-      </div>
+      <a class="brand-logo" routerLink="/dashboard" aria-label="Accueil DELFy">
+        <img src="icon.png" alt="" class="brand-logo-img" />
+      </a>
       @if (!sidebarCollapsed) {
         <div class="brand-text" @fadeLabel>
           <span class="brand-name">DELFy</span>
-          <span class="brand-role">{{ displayRole }}</span>
+          <span class="brand-role">Espace {{ displayRole }}</span>
         </div>
       }
-      <button class="collapse-btn" (click)="toggleSidebar()">
-        <mat-icon>{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      <button
+        class="collapse-btn"
+        type="button"
+        [attr.aria-label]="sidebarCollapsed ? 'Déployer le menu' : 'Réduire le menu'"
+        [attr.aria-expanded]="!sidebarCollapsed"
+        (click)="toggleSidebar()"
+      >
+        <mat-icon>{{ sidebarCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</mat-icon>
+      </button>
+      <button class="mobile-close-btn" type="button" aria-label="Fermer le menu" (click)="closeMobileNav()">
+        <mat-icon>close</mat-icon>
       </button>
     </div>
 
-    <!-- user mini-card -->
     @if (!sidebarCollapsed) {
       <a class="sidebar-user" routerLink="/profile" @fadeLabel>
-        <div class="user-avatar">
-          <mat-icon>{{ userRole === 'admin' ? 'admin_panel_settings' : userRole === 'school' ? 'school' : 'person' }}</mat-icon>
+        <div class="user-avatar" aria-hidden="true">
+          <mat-icon>{{ roleIcon }}</mat-icon>
         </div>
         <div class="user-info">
           <span class="user-name">{{ userName }}</span>
           <span class="user-badge">{{ displayRole }}</span>
         </div>
+        <mat-icon class="user-arrow">chevron_right</mat-icon>
       </a>
     }
 
-    <div class="sidebar-sep"></div>
+    @if (!sidebarCollapsed) {
+      <span class="nav-eyebrow" @fadeLabel>Navigation</span>
+    }
 
-    <!-- navigation -->
     <nav class="sidebar-nav">
-      @for (item of filteredNav; track item.path) {
-        <a class="nav-item"
-           [routerLink]="item.path"
-           routerLinkActive="active"
-           [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
-           [title]="item.label">
-          <div class="nav-icon" [style.background]="item.gradient">
+      @for (item of filteredNav; track item.path + item.label) {
+        <a
+          class="nav-item"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
+          [attr.aria-label]="item.label"
+          [title]="sidebarCollapsed ? item.label : ''"
+          (click)="closeMobileNav()"
+        >
+          <span class="nav-icon" [style.background]="item.gradient" aria-hidden="true">
             <mat-icon>{{ item.icon }}</mat-icon>
-          </div>
+          </span>
           @if (!sidebarCollapsed) {
             <span class="nav-label" @fadeLabel>{{ item.label }}</span>
-            <div class="nav-arrow"><mat-icon>chevron_right</mat-icon></div>
+            <mat-icon class="nav-arrow" aria-hidden="true">arrow_forward</mat-icon>
           }
         </a>
       }
     </nav>
 
     <div class="sidebar-footer">
-      <div class="sidebar-sep"></div>
-      <button class="nav-item logout-btn" (click)="logout()">
-        <div class="nav-icon" style="background:linear-gradient(135deg,#ef4444,#f97316)">
-          <mat-icon>logout</mat-icon>
-        </div>
+      <button class="nav-item logout-btn" type="button" (click)="logout()">
+        <span class="nav-icon logout-icon" aria-hidden="true"><mat-icon>logout</mat-icon></span>
         @if (!sidebarCollapsed) {
           <span class="nav-label" @fadeLabel>Déconnexion</span>
         }
@@ -66,44 +91,55 @@
     </div>
   </aside>
 
-  <!-- ══ MAIN CONTENT ══════════════════════════════════════════════════ -->
   <div class="main-area">
-
-    <!-- topbar -->
     <header class="topbar">
       <div class="topbar-left">
-        <button class="topbar-menu-btn" (click)="toggleSidebar()">
+        <button
+          class="topbar-menu-btn"
+          type="button"
+          aria-label="Ouvrir ou réduire le menu"
+          aria-controls="primary-navigation"
+          [attr.aria-expanded]="mobileNavOpen"
+          (click)="toggleSidebar()"
+        >
           <mat-icon>menu</mat-icon>
         </button>
-        <div class="topbar-breadcrumb">
+        <div class="topbar-heading">
           <span class="tb-page">{{ currentPageTitle }}</span>
+          <span class="tb-role">{{ displayRole }}</span>
         </div>
       </div>
+
       <div class="topbar-right">
-        <div class="topbar-time">{{ currentTime }}</div>
+        <div class="topbar-date" aria-label="Date et heure actuelles">
+          <mat-icon aria-hidden="true">calendar_today</mat-icon>
+          <span>{{ currentDate }}</span>
+          <strong>{{ currentTime }}</strong>
+        </div>
 
-        <!-- Theme toggle -->
-        <button class="topbar-icon-btn theme-toggle" (click)="theme.toggle()" [title]="theme.isDark() ? 'Mode clair' : 'Mode sombre'">
-          <div class="theme-track" [class.light]="!theme.isDark()">
-            <div class="theme-thumb">
-              <mat-icon>{{ theme.isDark() ? 'dark_mode' : 'light_mode' }}</mat-icon>
-            </div>
-          </div>
+        <button
+          class="theme-toggle"
+          type="button"
+          [attr.aria-label]="theme.isDark() ? 'Activer le mode clair' : 'Activer le mode sombre'"
+          [attr.aria-pressed]="theme.isDark()"
+          (click)="theme.toggle()"
+        >
+          <span class="theme-icon"><mat-icon>light_mode</mat-icon></span>
+          <span class="theme-track" [class.is-light]="!theme.isDark()">
+            <span class="theme-thumb"><mat-icon>{{ theme.isDark() ? 'dark_mode' : 'light_mode' }}</mat-icon></span>
+          </span>
+          <span class="theme-icon"><mat-icon>dark_mode</mat-icon></span>
         </button>
 
-        <button class="topbar-icon-btn">
-          <mat-icon>notifications_none</mat-icon>
-          <span class="notif-dot"></span>
-        </button>
-        <a class="topbar-avatar" routerLink="/profile" title="Mon profil">
-          <mat-icon>person</mat-icon>
+        <a class="topbar-profile" routerLink="/profile" [attr.aria-label]="'Ouvrir le profil de ' + userName">
+          <span>{{ userInitials }}</span>
+          <span class="profile-status" aria-hidden="true"></span>
         </a>
       </div>
     </header>
 
-    <main class="page-content">
+    <main id="main-content" class="page-content" tabindex="-1">
       <router-outlet />
     </main>
-
   </div>
 </div>

@@ -30,13 +30,13 @@
       <p>Aucun jeu configuré</p>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>Jeu</th>
-          <th>Slug</th>
-          <th>Joueurs</th>
-          <th>Questions</th>
+          <th data-sort-key="name">Jeu</th>
+          <th data-sort-key="slug">Slug</th>
+          <th data-sort-key="maxPlayers">Joueurs</th>
+          <th data-sort-key="defaultQuestionCount">Questions</th>
           <th></th>
         </tr>
       </thead>
@@ -68,6 +68,31 @@
         }
       </tbody>
     </table>
-    <div class="table-footer"><span>{{ filtered().length }} jeu(x)</span></div>
+    @if (totalPages() > 1) {
+      <nav class="pagination" aria-label="Pagination des jeux">
+        <button class="page-btn" type="button" title="Première page" aria-label="Première page" (click)="setPage(0)" [disabled]="pageIndex === 0">
+          <mat-icon>first_page</mat-icon>
+        </button>
+        <button class="page-btn" type="button" title="Page précédente" aria-label="Page précédente" (click)="setPage(pageIndex - 1)" [disabled]="pageIndex === 0">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        @for (p of pages(); track p) {
+          @if (p >= pageIndex - 2 && p <= pageIndex + 2) {
+            <button class="page-btn" type="button" [class.active]="p === pageIndex" [attr.aria-current]="p === pageIndex ? 'page' : null" [attr.aria-label]="'Page ' + (p + 1)" (click)="setPage(p)">{{ p + 1 }}</button>
+          }
+        }
+        <button class="page-btn" type="button" title="Page suivante" aria-label="Page suivante" (click)="setPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages() - 1">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        <button class="page-btn" type="button" title="Dernière page" aria-label="Dernière page" (click)="setPage(totalPages() - 1)" [disabled]="pageIndex >= totalPages() - 1">
+          <mat-icon>last_page</mat-icon>
+        </button>
+        <span class="page-info">{{ pageIndex + 1 }} / {{ totalPages() }}</span>
+      </nav>
+    }
+    <div class="table-footer">
+      <span>{{ filtered().length }} jeu(x)</span>
+      <span>Éléments {{ pageIndex * pageSize + 1 }}–{{ (pageIndex + 1) * pageSize < filtered().length ? (pageIndex + 1) * pageSize : filtered().length }}</span>
+    </div>
   }
 </div>

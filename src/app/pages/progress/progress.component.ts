@@ -6,6 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { UserProgressItemOut } from '../../core/models/progress.model';
 import { ApiService } from '../../core/http/api.service';
+import { SortableTableDirective } from '../../shared/sortable-table.directive';
 import { DetailDialogComponent, DetailDialogData } from '../../shared/detail-dialog/detail-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -14,7 +15,7 @@ const MAX_LESSONS = 20;
 @Component({
   selector: 'app-progress',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule, SortableTableDirective],
   templateUrl: './progress.component.html',
   styleUrl: './progress.component.scss',
 })
@@ -30,7 +31,7 @@ export class ProgressComponent implements OnInit {
   pageSize   = 10;
   pageIndex  = 0;
 
-  readonly paginated  = computed(() => this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize));
+  paginated(): UserProgressItemOut[] { return this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize); }
   readonly totalPages = computed(() => Math.ceil(this.filtered().length / this.pageSize));
 
   async ngOnInit(): Promise<void> {
@@ -53,7 +54,7 @@ export class ProgressComponent implements OnInit {
     this.pageIndex = 0;
   }
 
-  setPage(p: number): void { this.pageIndex = p; }
+  setPage(p: number): void { this.pageIndex = Math.max(0, Math.min(p, this.totalPages() - 1)); }
   pages(): number[] { return Array.from({ length: this.totalPages() }, (_, i) => i); }
 
   openDetail(row: UserProgressItemOut): void {

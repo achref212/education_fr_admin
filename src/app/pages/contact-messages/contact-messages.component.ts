@@ -8,13 +8,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { ContactMessageOut } from '../../core/models/contact.model';
 import { ApiService } from '../../core/http/api.service';
+import { SortableTableDirective } from '../../shared/sortable-table.directive';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { DetailDialogComponent, DetailDialogData } from '../../shared/detail-dialog/detail-dialog.component';
 
 @Component({
   selector: 'app-contact-messages',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule, SortableTableDirective],
   templateUrl: './contact-messages.component.html',
   styleUrl: './contact-messages.component.scss',
 })
@@ -31,7 +32,7 @@ export class ContactMessagesComponent implements OnInit {
   pageSize   = 10;
   pageIndex  = 0;
 
-  readonly paginated  = computed(() => this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize));
+  paginated(): ContactMessageOut[] { return this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize); }
   readonly totalPages = computed(() => Math.ceil(this.filtered().length / this.pageSize));
 
   get unreadCount(): number { return this.messages().filter(m => !m.read).length; }
@@ -60,7 +61,7 @@ export class ContactMessagesComponent implements OnInit {
     this.pageIndex = 0;
   }
 
-  setPage(p: number): void { this.pageIndex = p; }
+  setPage(p: number): void { this.pageIndex = Math.max(0, Math.min(p, this.totalPages() - 1)); }
   pages(): number[] { return Array.from({ length: this.totalPages() }, (_, i) => i); }
 
   openDetail(m: ContactMessageOut): void {

@@ -34,14 +34,14 @@
       </button>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>Professeur</th>
-          <th>E-mail</th>
-          <th>Téléphone</th>
-          <th>Statut</th>
-          <th>Créé le</th>
+          <th data-sort-key="firstName">Professeur</th>
+          <th data-sort-key="email">E-mail</th>
+          <th data-sort-key="phone">Téléphone</th>
+          <th data-sort-key="isActive">Statut</th>
+          <th data-sort-key="createdAt">Créé le</th>
         </tr>
       </thead>
       <tbody>

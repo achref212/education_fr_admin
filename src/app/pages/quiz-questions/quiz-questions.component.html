@@ -31,14 +31,14 @@
       <p>Aucune question trouvée</p>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>#</th>
-          <th>Question</th>
-          <th>Catégorie</th>
-          <th>Niveau</th>
-          <th>Réponse correcte</th>
+          <th data-sort-key="id">#</th>
+          <th data-sort-key="question">Question</th>
+          <th data-sort-key="category">Catégorie</th>
+          <th data-sort-key="level">Niveau</th>
+          <th data-sort-key="correctIndex">Réponse correcte</th>
           <th>Options</th>
           <th></th>
         </tr>

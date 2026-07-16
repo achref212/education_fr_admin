@@ -1,378 +1,463 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
 import { AdminStats } from '../../core/models/stats.model';
-import { AdminUserOut, SchoolStats } from '../../core/models/user.model';
+import { AdminUserOut } from '../../core/models/user.model';
 import { ApiService } from '../../core/http/api.service';
 import { StatCardComponent } from '../../shared/stat-card/stat-card.component';
 import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { ThemeService } from '../../core/theme/theme.service';
 
-interface KpiCard { label: string; value: number; hint?: string; }
-interface QuickAction { label: string; icon: string; route: string; gradient: string; }
-interface ModuleCard {
-  label: string; icon: string; route: string;
-  gradient: string; color: string;
-  description: string;
-  count: (s: AdminStats) => number;
-  adminOnly?: boolean;
+interface KpiCard {
+  label: string;
+  value: number | string;
+  detail: string;
+  icon: string;
+  accent: string;
+  status?: string;
+  route?: string;
 }
 
-const CHART_COLORS = ['#6366f1','#ec4899','#10b981','#f59e0b','#06b6d4','#a855f7','#f97316','#ef4444'];
+interface QuickAction {
+  label: string;
+  description: string;
+  icon: string;
+  route: string;
+  accent: string;
+}
+
+interface ModuleCard extends QuickAction {
+  count: () => number;
+}
+
+const CHART_COLORS = ['#6d5dfc', '#ec4899', '#16a67a', '#f59e0b', '#22b8cf', '#9b5de5', '#f97316', '#ef4444'];
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [
-    MatProgressSpinnerModule,
-    MatIconModule,
-    BaseChartDirective,
-    StatCardComponent,
-    RouterLink,
-  ],
+  imports: [MatIconModule, BaseChartDirective, StatCardComponent, RouterLink, DatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent implements OnInit {
-  private readonly api   = inject(ApiService);
-  readonly auth  = inject(AdminAuthService);
+export class DashboardComponent implements OnInit, OnDestroy {
+  private readonly api = inject(ApiService);
+  readonly auth = inject(AdminAuthService);
   private readonly theme = inject(ThemeService);
 
   readonly loading = signal(true);
-  readonly error   = signal('');
-  readonly stats   = signal<AdminStats | null>(null);
-  readonly schoolStats = signal<SchoolStats | null>(null);
-  readonly profStats = signal<{ studentCount: number; activeStudents: number } | null>(null);
+  readonly refreshing = signal(false);
+  readonly error = signal('');
+  readonly lastUpdated = signal<Date | null>(null);
+  readonly stats = signal<AdminStats | null>(null);
+  readonly students = signal<AdminUserOut[]>([]);
+  readonly professors = signal<AdminUserOut[]>([]);
+  readonly levelChart = signal<ChartConfiguration<'bar'>>(this.emptyBarChart());
+  readonly statusChart = signal<ChartConfiguration<'doughnut'>>(this.emptyDoughnutChart());
+  private refreshTimer?: number;
+  private readonly refreshIntervalMs = 60_000;
+  private readonly visibilityHandler = () => {
+    if (document.visibilityState === 'visible' && this.shouldRefresh()) void this.loadDashboard(false);
+  };
+
+  constructor() {
+    effect(() => {
+      this.theme.isDark();
+      const stats = this.stats();
+      const students = this.students();
+      this.professors();
+      if (!this.loading()) {
+        this.buildCharts(stats, students);
+      }
+    });
+  }
 
   get userName(): string {
-    const u = this.auth.user();
-    if (!u) return 'Utilisateur';
-    if (u.role === 'school') return u.name || 'École';
-    return `${u.firstName} ${u.lastName}`;
+    const user = this.auth.user();
+    if (!user) return 'Utilisateur';
+    if (user.role === 'school') return user.name || 'Votre établissement';
+    return `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Utilisateur';
   }
 
-  readonly schoolModules: ModuleCard[] = [
-    {
-      label: 'Élèves', icon: 'school', route: '/students',
-      gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', color: '#2dd4bf',
-      description: 'Consultez vos élèves, leur parcours DELF et progression par niveau scolaire.',
-      count: (_s) => this.schoolStats()?.studentCount ?? 0,
-    },
-    {
-      label: 'Professeurs', icon: 'badge', route: '/professors',
-      gradient: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#a78bfa',
-      description: 'Créez et gérez les comptes professeurs de votre établissement.',
-      count: (_s) => this.schoolStats()?.professorCount ?? 0,
-    },
-  ];
-
-  readonly profModules: ModuleCard[] = [
-    {
-      label: 'Élèves', icon: 'people', route: '/users',
-      gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#818cf8',
-      description: 'Consultez vos élèves et leur parcours DELF détaillé (étapes, XP, streak).',
-      count: (_s) => this.profStats()?.studentCount ?? 0,
-    },
-    {
-      label: 'Leçons', icon: 'menu_book', route: '/lessons',
-      gradient: 'linear-gradient(135deg,#10b981,#34d399)', color: '#34d399',
-      description: 'Créez et éditez les leçons pédagogiques pour vos classes.',
-      count: () => 0,
-    },
-    {
-      label: 'Multijoueur', icon: 'groups', route: '/multiplayer',
-      gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#c084fc',
-      description: 'Organisez des quiz duels et défis entre amis avec difficulté adaptée.',
-      count: () => 0,
-    },
-  ];
-
-  readonly modules: ModuleCard[] = [
-    {
-      label: 'Utilisateurs', icon: 'people', route: '/users',
-      gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#818cf8',
-      description: 'Gérez les comptes élèves et administrateurs. Modifiez les rôles, niveaux et statuts.',
-      count: s => s.totalUsers,
-    },
-    {
-      label: 'Leçons', icon: 'menu_book', route: '/lessons',
-      gradient: 'linear-gradient(135deg,#10b981,#34d399)', color: '#34d399',
-      description: 'Créez et éditez les leçons pédagogiques par catégorie (grammaire, conjugaison, orthographe, vocabulaire).',
-      count: s => s.totalLessons,
-    },
-    {
-      label: 'Quiz', icon: 'quiz', route: '/quiz-questions',
-      gradient: 'linear-gradient(135deg,#f59e0b,#fbbf24)', color: '#fbbf24',
-      description: 'Ajoutez des questions à choix multiples avec explications pour tester les connaissances des élèves.',
-      count: s => s.totalQuizQuestions,
-    },
-    {
-      label: 'Histoires', icon: 'auto_stories', route: '/stories',
-      gradient: 'linear-gradient(135deg,#ec4899,#f43f5e)', color: '#f472b6',
-      description: 'Publiez des histoires de lecture adaptées à chaque niveau scolaire avec support audio.',
-      count: s => s.totalStories,
-    },
-    {
-      label: 'Progression', icon: 'trending_up', route: '/progress',
-      gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', color: '#2dd4bf',
-      description: 'Suivez la progression de chaque élève : leçons complétées, scores aux quiz et exercices.',
-      count: () => 0,
-    },
-    {
-      label: 'Messages', icon: 'mail', route: '/contact-messages',
-      gradient: 'linear-gradient(135deg,#f97316,#fb923c)', color: '#fb923c',
-      description: 'Consultez et répondez aux messages de contact envoyés par les utilisateurs de la plateforme.',
-      count: s => s.unreadMessages,
-    },
-    {
-      label: 'Multijoueur', icon: 'groups', route: '/multiplayer',
-      gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#c084fc',
-      description: 'Supervisez les salles de jeu actives et l\'historique des parties disputées.',
-      count: s => s.multiplayerRooms,
-    },
-    {
-      label: 'Parcours DELF', icon: 'route', route: '/learning-paths',
-      gradient: 'linear-gradient(135deg,#6366f1,#06b6d4)', color: '#22d3ee',
-      description: 'Configurez les parcours structurés par niveau scolaire avec objectifs DELF et étapes.',
-      count: () => 0,
-      adminOnly: true,
-    },
-    {
-      label: 'Tests DELF', icon: 'assignment', route: '/delf-tests',
-      gradient: 'linear-gradient(135deg,#6366f1,#ec4899)', color: '#f472b6',
-      description: 'Consultez les tests de niveau DELF par catégorie et configurez les seuils d\'évaluation.',
-      count: () => 0,
-      adminOnly: true,
-    },
-    {
-      label: 'Jeux multijoueur', icon: 'sports_esports', route: '/games',
-      gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#c084fc',
-      description: 'Gérez le catalogue de jeux (quiz duel, défis entre amis) pour les salles multijoueur.',
-      count: () => 0,
-      adminOnly: true,
-    },
-    {
-      label: 'Établissements', icon: 'school', route: '/schools',
-      gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', color: '#34d399',
-      description: 'Créez et gérez les comptes établissements scolaires partenaires de la plateforme.',
-      count: s => s.totalSchools,
-      adminOnly: true,
-    },
-  ];
-
-  readonly quickActions: QuickAction[] = [
-    { label: 'Utilisateurs',   icon: 'people',       route: '/users',            gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
-    { label: 'Leçons',         icon: 'menu_book',     route: '/lessons',          gradient: 'linear-gradient(135deg,#10b981,#34d399)' },
-    { label: 'Quiz',           icon: 'quiz',          route: '/quiz-questions',   gradient: 'linear-gradient(135deg,#f59e0b,#fbbf24)' },
-    { label: 'Histoires',      icon: 'auto_stories',  route: '/stories',          gradient: 'linear-gradient(135deg,#ec4899,#f43f5e)' },
-    { label: 'Messages',       icon: 'mail',          route: '/contact-messages', gradient: 'linear-gradient(135deg,#f97316,#fb923c)' },
-    { label: 'Multijoueur',    icon: 'groups',        route: '/multiplayer',      gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
-    { label: 'Parcours DELF',  icon: 'route',         route: '/learning-paths',   gradient: 'linear-gradient(135deg,#6366f1,#06b6d4)' },
-    { label: 'Tests DELF',     icon: 'assignment',    route: '/delf-tests',       gradient: 'linear-gradient(135deg,#6366f1,#ec4899)' },
-    { label: 'Jeux',           icon: 'sports_esports', route: '/games',           gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
-  ];
-
-  get filteredModules(): ModuleCard[] {
-    const role = this.auth.user()?.role;
-    if (role === 'admin') return this.modules;
-    if (role === 'school') return this.schoolModules;
-    if (role === 'prof') {
-      return this.profModules;
-    }
-    return [];
+  get roleLabel(): string {
+    if (this.auth.isSchool()) return 'Établissement';
+    if (this.auth.isProf()) return 'Professeur';
+    return 'Administrateur';
   }
 
-  get filteredQuickActions(): QuickAction[] {
-    const role = this.auth.user()?.role;
-    if (role === 'admin') return this.quickActions;
-    if (role === 'school') {
+  get roleIcon(): string {
+    if (this.auth.isSchool()) return 'school';
+    if (this.auth.isProf()) return 'co_present';
+    return 'admin_panel_settings';
+  }
+
+  get heroTitle(): string {
+    if (this.auth.isSchool()) return 'Pilotez votre établissement avec clarté.';
+    if (this.auth.isProf()) return 'Faites progresser chaque élève.';
+    return 'Votre plateforme, en un seul regard.';
+  }
+
+  get heroDescription(): string {
+    if (this.auth.isSchool()) return 'Suivez les effectifs, l’activité des élèves et votre équipe pédagogique depuis un espace unifié.';
+    if (this.auth.isProf()) return 'Retrouvez vos élèves, préparez vos leçons et lancez des activités engageantes en quelques secondes.';
+    return 'Surveillez l’activité, organisez les contenus pédagogiques et accédez rapidement aux opérations importantes.';
+  }
+
+  get healthRate(): number {
+    const stats = this.stats();
+    const students = this.students();
+    const total = this.auth.isAdmin() ? stats?.totalUsers ?? 0 : students.length;
+    const active = this.auth.isAdmin()
+      ? stats?.activeUsers ?? 0
+      : students.filter(student => student.isActive).length;
+    return total === 0 ? 0 : Math.round((active / total) * 100);
+  }
+
+  get healthLabel(): string {
+    return this.auth.isAdmin() ? 'Utilisateurs actifs' : 'Élèves actifs';
+  }
+
+  get healthStatus(): string {
+    if (this.healthRate === 0) return 'Prêt à démarrer';
+    if (this.healthRate >= 75) return 'Très bonne activité';
+    if (this.healthRate >= 40) return 'Activité stable';
+    return 'Activité à dynamiser';
+  }
+
+  get primaryAction(): QuickAction {
+    if (this.auth.isSchool()) return this.schoolActions[0];
+    if (this.auth.isProf()) return this.profActions[0];
+    return this.adminActions[0];
+  }
+
+  get kpiCards(): KpiCard[] {
+    const stats = this.stats();
+    const students = this.students();
+    const activeStudents = students.filter(student => student.isActive).length;
+    const inactiveStudents = students.length - activeStudents;
+
+    if (this.auth.isSchool()) {
       return [
-        { label: 'Élèves', icon: 'school', route: '/students', gradient: 'linear-gradient(135deg,#10b981,#06b6d4)' },
-        { label: 'Professeurs', icon: 'badge', route: '/professors', gradient: 'linear-gradient(135deg,#6366f1,#a855f7)' },
+        { label: 'Élèves inscrits', value: students.length, detail: 'Effectif total', icon: 'groups', accent: '#12b886', route: '/students' },
+        { label: 'Élèves actifs', value: activeStudents, detail: `${this.healthRate}% de l’effectif`, icon: 'verified_user', accent: '#22b8cf', status: 'Actifs', route: '/students' },
+        { label: 'Professeurs', value: this.professors().length, detail: 'Équipe pédagogique', icon: 'co_present', accent: '#6d5dfc', route: '/professors' },
+        { label: 'À réactiver', value: inactiveStudents, detail: 'Comptes élèves inactifs', icon: 'person_off', accent: '#f59e0b', route: '/students' },
       ];
     }
-    if (role === 'prof') {
+
+    if (this.auth.isProf()) {
       return [
-        { label: 'Élèves', icon: 'people', route: '/users', gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
-        { label: 'Leçons', icon: 'menu_book', route: '/lessons', gradient: 'linear-gradient(135deg,#10b981,#34d399)' },
-        { label: 'Multijoueur', icon: 'groups', route: '/multiplayer', gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },
+        { label: 'Mes élèves', value: students.length, detail: 'Élèves attribués', icon: 'groups', accent: '#6d5dfc', route: '/users' },
+        { label: 'Élèves actifs', value: activeStudents, detail: `${this.healthRate}% de votre classe`, icon: 'how_to_reg', accent: '#16a67a', status: 'Actifs', route: '/users' },
+        { label: 'À accompagner', value: inactiveStudents, detail: 'Comptes à réactiver', icon: 'support_agent', accent: '#f59e0b', route: '/users' },
       ];
     }
-    return [];
-  }
 
-  get profKpiCards(): KpiCard[] {
-    const s = this.profStats();
-    if (!s) return [];
+    if (!stats) return [];
     return [
-      { label: 'Élèves inscrits', value: s.studentCount },
-      { label: 'Élèves actifs', value: s.activeStudents },
+      { label: 'Utilisateurs', value: stats.totalUsers, detail: 'Comptes sur la plateforme', icon: 'groups', accent: '#6d5dfc', route: '/users' },
+      { label: 'Utilisateurs actifs', value: stats.activeUsers, detail: `${this.healthRate}% du total`, icon: 'verified_user', accent: '#22b8cf', status: 'Actifs', route: '/users' },
+      { label: 'Établissements', value: stats.totalSchools, detail: 'Partenaires scolaires', icon: 'school', accent: '#16a67a', route: '/schools' },
+      { label: 'Leçons', value: stats.totalLessons, detail: 'Contenus pédagogiques', icon: 'menu_book', accent: '#10b981', route: '/lessons' },
+      { label: 'Questions quiz', value: stats.totalQuizQuestions, detail: 'Questions disponibles', icon: 'quiz', accent: '#f59e0b', route: '/quiz-questions' },
+      { label: 'Histoires', value: stats.totalStories, detail: 'Lectures publiées', icon: 'auto_stories', accent: '#ec4899', route: '/stories' },
+      { label: 'Messages non lus', value: stats.unreadMessages, detail: 'Demandes à traiter', icon: 'mark_email_unread', accent: '#f97316', status: stats.unreadMessages ? 'Action' : '', route: '/contact-messages' },
+      { label: 'Salles multijoueur', value: stats.multiplayerRooms, detail: 'Sessions créées', icon: 'stadia_controller', accent: '#9b5de5', route: '/multiplayer' },
     ];
   }
 
-  get schoolKpiCards(): KpiCard[] {
-    const s = this.schoolStats();
-    if (!s) return [];
-    return [
-      { label: 'Élèves inscrits', value: s.studentCount },
-      { label: 'Élèves actifs', value: s.activeStudents },
-      { label: 'Professeurs', value: s.professorCount },
-    ];
+  get chartTitle(): string {
+    return this.auth.isAdmin() ? 'Utilisateurs par niveau' : 'Élèves par classe';
   }
 
-  usersByLevelChart: ChartConfiguration<'bar'> = {
-    type: 'bar',
-    data: { labels: [], datasets: [] },
-    options: {},
-  };
+  get chartSubtitle(): string {
+    return this.auth.isAdmin() ? 'Répartition des apprenants inscrits' : 'Répartition actuelle de votre effectif';
+  }
 
-  lessonsByCategoryChart: ChartConfiguration<'doughnut'> = {
-    type: 'doughnut',
-    data: { labels: [], datasets: [] },
-    options: {},
-  };
+  get statusChartTitle(): string {
+    return this.auth.isAdmin() ? 'Leçons par catégorie' : 'État des comptes élèves';
+  }
 
-  kpiCards(s: AdminStats): KpiCard[] {
-    return [
-      { label: 'Utilisateurs',        value: s.totalUsers },
-      { label: 'Utilisateurs actifs', value: s.activeUsers },
-      { label: 'Leçons',              value: s.totalLessons },
-      { label: 'Questions quiz',      value: s.totalQuizQuestions },
-      { label: 'Histoires',           value: s.totalStories },
-      { label: 'Messages non lus',    value: s.unreadMessages, hint: 'Contact' },
-      { label: 'Salles multijoueur',  value: s.multiplayerRooms },
-    ];
+  get statusChartSubtitle(): string {
+    return this.auth.isAdmin() ? 'Équilibre des contenus pédagogiques' : 'Comptes actifs et comptes à réactiver';
+  }
+
+  get hasLevelData(): boolean {
+    return (this.levelChart().data.labels?.length ?? 0) > 0;
+  }
+
+  get hasStatusData(): boolean {
+    return (this.statusChart().data.labels?.length ?? 0) > 0;
+  }
+
+  get levelBreakdown(): Array<{ label: string; value: number; color: string }> {
+    const values = this.auth.isAdmin()
+      ? this.stats()?.usersByLevel ?? {}
+      : this.groupStudentsByLevel(this.students());
+    return Object.entries(values)
+      .filter(([, value]) => value > 0)
+      .sort(([left], [right]) => left.localeCompare(right, 'fr'))
+      .map(([label, value], index) => ({ label, value, color: CHART_COLORS[index % CHART_COLORS.length] }));
+  }
+
+  get statusBreakdown(): Array<{ label: string; value: number; color: string }> {
+    const students = this.students();
+    const values = this.auth.isAdmin()
+      ? this.stats()?.lessonsByCategory ?? {}
+      : {
+          Actifs: students.filter(student => student.isActive).length,
+          Inactifs: students.filter(student => !student.isActive).length,
+        };
+    return Object.entries(values)
+      .filter(([, value]) => value > 0)
+      .map(([label, value], index) => ({ label, value, color: CHART_COLORS[index % CHART_COLORS.length] }));
+  }
+
+  private readonly adminModules: ModuleCard[] = [
+    { label: 'Utilisateurs', description: 'Gérer les comptes, rôles, niveaux et statuts.', icon: 'groups', route: '/users', accent: '#6d5dfc', count: () => this.stats()?.totalUsers ?? 0 },
+    { label: 'Leçons', description: 'Créer et organiser les contenus pédagogiques.', icon: 'menu_book', route: '/lessons', accent: '#16a67a', count: () => this.stats()?.totalLessons ?? 0 },
+    { label: 'Quiz', description: 'Construire des évaluations avec explications.', icon: 'quiz', route: '/quiz-questions', accent: '#f59e0b', count: () => this.stats()?.totalQuizQuestions ?? 0 },
+    { label: 'Histoires', description: 'Publier des lectures adaptées à chaque niveau.', icon: 'auto_stories', route: '/stories', accent: '#ec4899', count: () => this.stats()?.totalStories ?? 0 },
+    { label: 'Établissements', description: 'Administrer les écoles partenaires.', icon: 'school', route: '/schools', accent: '#22b8cf', count: () => this.stats()?.totalSchools ?? 0 },
+    { label: 'Messages', description: 'Répondre aux demandes des utilisateurs.', icon: 'forum', route: '/contact-messages', accent: '#f97316', count: () => this.stats()?.unreadMessages ?? 0 },
+    { label: 'Multijoueur', description: 'Superviser les salles et les sessions de jeu.', icon: 'sports_esports', route: '/multiplayer', accent: '#9b5de5', count: () => this.stats()?.multiplayerRooms ?? 0 },
+    { label: 'Parcours DELF', description: 'Structurer les étapes et objectifs DELF.', icon: 'route', route: '/learning-paths', accent: '#3b82f6', count: () => 0 },
+  ];
+
+  private readonly schoolModules: ModuleCard[] = [
+    { label: 'Élèves', description: 'Consulter les classes, profils et parcours DELF.', icon: 'groups', route: '/students', accent: '#12b886', count: () => this.students().length },
+    { label: 'Professeurs', description: 'Créer et gérer votre équipe pédagogique.', icon: 'co_present', route: '/professors', accent: '#6d5dfc', count: () => this.professors().length },
+  ];
+
+  private readonly profModules: ModuleCard[] = [
+    { label: 'Mes élèves', description: 'Suivre chaque élève et son parcours détaillé.', icon: 'groups', route: '/users', accent: '#6d5dfc', count: () => this.students().length },
+    { label: 'Leçons', description: 'Préparer des leçons adaptées à vos classes.', icon: 'menu_book', route: '/lessons', accent: '#16a67a', count: () => 0 },
+    { label: 'Multijoueur', description: 'Lancer des défis et quiz collectifs.', icon: 'sports_esports', route: '/multiplayer', accent: '#9b5de5', count: () => 0 },
+  ];
+
+  private readonly adminActions: QuickAction[] = [
+    { label: 'Créer une leçon', description: 'Ajouter un nouveau contenu', icon: 'add_box', route: '/lessons', accent: '#16a67a' },
+    { label: 'Gérer les élèves', description: 'Comptes et progression', icon: 'manage_accounts', route: '/users', accent: '#6d5dfc' },
+    { label: 'Voir les messages', description: 'Demandes en attente', icon: 'mark_email_unread', route: '/contact-messages', accent: '#f97316' },
+    { label: 'Configurer DELF', description: 'Parcours et évaluations', icon: 'route', route: '/learning-paths', accent: '#3b82f6' },
+  ];
+
+  private readonly schoolActions: QuickAction[] = [
+    { label: 'Voir les élèves', description: 'Classes et progression', icon: 'groups', route: '/students', accent: '#12b886' },
+    { label: 'Ajouter un professeur', description: 'Développer votre équipe', icon: 'person_add', route: '/professors', accent: '#6d5dfc' },
+  ];
+
+  private readonly profActions: QuickAction[] = [
+    { label: 'Voir mes élèves', description: 'Profils et parcours', icon: 'groups', route: '/users', accent: '#6d5dfc' },
+    { label: 'Créer une leçon', description: 'Préparer un contenu', icon: 'note_add', route: '/lessons', accent: '#16a67a' },
+    { label: 'Lancer une partie', description: 'Défi multijoueur', icon: 'sports_esports', route: '/multiplayer', accent: '#9b5de5' },
+  ];
+
+  get modules(): ModuleCard[] {
+    if (this.auth.isSchool()) return this.schoolModules;
+    if (this.auth.isProf()) return this.profModules;
+    return this.adminModules;
+  }
+
+  get quickActions(): QuickAction[] {
+    if (this.auth.isSchool()) return this.schoolActions;
+    if (this.auth.isProf()) return this.profActions;
+    return this.adminActions;
   }
 
   async ngOnInit(): Promise<void> {
-    if (this.auth.isSchool()) {
-      await this._loadSchoolStats();
-      this.stats.set({
-        totalUsers: 0, activeUsers: 0, totalLessons: 0, totalQuizQuestions: 0,
-        totalStories: 0, unreadMessages: 0, multiplayerRooms: 0, totalSchools: 0,
-        usersByLevel: {}, lessonsByCategory: {}
-      });
-      this.loading.set(false);
-      return;
-    }
-    if (this.auth.isProf()) {
-      await this._loadProfStats();
-      this.stats.set({
-        totalUsers: 0, activeUsers: 0, totalLessons: 0, totalQuizQuestions: 0,
-        totalStories: 0, unreadMessages: 0, multiplayerRooms: 0, totalSchools: 0,
-        usersByLevel: {}, lessonsByCategory: {}
-      });
-      this.loading.set(false);
-      return;
-    }
-    if (!this.auth.isAdmin()) {
-      this.stats.set({
-        totalUsers: 0, activeUsers: 0, totalLessons: 0, totalQuizQuestions: 0,
-        totalStories: 0, unreadMessages: 0, multiplayerRooms: 0, totalSchools: 0,
-        usersByLevel: {}, lessonsByCategory: {}
-      });
-      this.loading.set(false);
-      return;
-    }
-    
+    await this.loadDashboard(true);
+    this.refreshTimer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void this.loadDashboard(false);
+    }, this.refreshIntervalMs);
+    document.addEventListener('visibilitychange', this.visibilityHandler);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshTimer !== undefined) window.clearInterval(this.refreshTimer);
+    document.removeEventListener('visibilitychange', this.visibilityHandler);
+  }
+
+  async loadDashboard(showLoader = false): Promise<void> {
+    if ((this.loading() && !showLoader) || this.refreshing()) return;
+    if (showLoader) this.loading.set(true);
+    else this.refreshing.set(true);
+    this.error.set('');
+
     try {
-      const s = await this.api.get<AdminStats>('/admin/stats');
-      this.stats.set(s);
-      this._buildCharts(s);
-    } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Erreur chargement');
+      if (this.auth.isSchool()) {
+        const [students, professors] = await Promise.all([
+          this.api.get<AdminUserOut[]>('/school/students'),
+          this.api.get<AdminUserOut[]>('/school/professors'),
+        ]);
+        this.students.set(students);
+        this.professors.set(professors);
+      } else if (this.auth.isProf()) {
+        this.students.set(await this.api.get<AdminUserOut[]>('/prof/students'));
+      } else if (this.auth.isAdmin()) {
+        this.stats.set(this.normalizeStats(await this.api.get<AdminStats>('/admin/stats')));
+      } else {
+        throw new Error('Vous n’avez pas accès à ce tableau de bord.');
+      }
+      this.lastUpdated.set(new Date());
+    } catch (error: unknown) {
+      if (!this.hasDashboardData()) {
+        this.error.set(error instanceof Error ? error.message : 'Impossible de charger le tableau de bord.');
+      }
     } finally {
       this.loading.set(false);
+      this.refreshing.set(false);
     }
   }
 
-  private async _loadProfStats(): Promise<void> {
-    try {
-      const students = await this.api.get<AdminUserOut[]>('/prof/students');
-      this.profStats.set({
-        studentCount: students.length,
-        activeStudents: students.filter(s => s.isActive).length,
-      });
-    } catch {
-      this.profStats.set({ studentCount: 0, activeStudents: 0 });
-    }
+  private hasDashboardData(): boolean {
+    return this.stats() !== null || this.students().length > 0 || this.professors().length > 0;
   }
 
-  private async _loadSchoolStats(): Promise<void> {
-    try {
-      const [students, professors] = await Promise.all([
-        this.api.get<AdminUserOut[]>('/school/students'),
-        this.api.get<AdminUserOut[]>('/school/professors'),
-      ]);
-      this.schoolStats.set({
-        studentCount: students.length,
-        professorCount: professors.length,
-        activeStudents: students.filter(s => s.isActive).length,
-      });
-    } catch {
-      this.schoolStats.set({ studentCount: 0, professorCount: 0, activeStudents: 0 });
-    }
+  private shouldRefresh(): boolean {
+    const updated = this.lastUpdated();
+    return !updated || Date.now() - updated.getTime() >= this.refreshIntervalMs;
   }
 
-  private _buildCharts(s: AdminStats): void {
-    const isLight   = this.theme.isDark() === false;
-    const gridColor = isLight ? 'rgba(99,102,241,.08)' : 'rgba(255,255,255,.05)';
-    const tickColor = isLight ? 'rgba(30,27,75,.5)'    : 'rgba(255,255,255,.5)';
-    const legendColor = isLight ? 'rgba(30,27,75,.65)' : 'rgba(255,255,255,.55)';
+  private normalizeStats(stats: AdminStats): AdminStats {
+    return {
+      totalUsers: Number(stats.totalUsers) || 0,
+      activeUsers: Number(stats.activeUsers) || 0,
+      totalLessons: Number(stats.totalLessons) || 0,
+      totalQuizQuestions: Number(stats.totalQuizQuestions) || 0,
+      totalStories: Number(stats.totalStories) || 0,
+      unreadMessages: Number(stats.unreadMessages) || 0,
+      multiplayerRooms: Number(stats.multiplayerRooms) || 0,
+      totalSchools: Number(stats.totalSchools) || 0,
+      usersByLevel: stats.usersByLevel ?? {},
+      lessonsByCategory: stats.lessonsByCategory ?? {},
+    };
+  }
 
-    const uLabels = Object.keys(s.usersByLevel);
-    const uData   = uLabels.map(k => s.usersByLevel[k]);
+  private buildCharts(stats: AdminStats | null, students: AdminUserOut[]): void {
+    if (this.auth.isAdmin() && stats) {
+      this.levelChart.set(this.createBarChart(stats.usersByLevel, 'Utilisateurs'));
+      this.statusChart.set(this.createDoughnutChart(stats.lessonsByCategory));
+      return;
+    }
 
-    this.usersByLevelChart = {
+    this.levelChart.set(this.createBarChart(this.groupStudentsByLevel(students), 'Élèves'));
+    this.statusChart.set(students.length
+      ? this.createDoughnutChart({
+          Actifs: students.filter(student => student.isActive).length,
+          Inactifs: students.filter(student => !student.isActive).length,
+        }, ['#16a67a', '#f59e0b'])
+      : this.emptyDoughnutChart());
+  }
+
+  private groupStudentsByLevel(students: AdminUserOut[]): Record<string, number> {
+    return students.reduce<Record<string, number>>((groups, student) => {
+      const level = student.classLevel || student.level || 'Non renseigné';
+      groups[level] = (groups[level] ?? 0) + 1;
+      return groups;
+    }, {});
+  }
+
+  private createBarChart(values: Record<string, number>, datasetLabel: string): ChartConfiguration<'bar'> {
+    const labels = Object.keys(values).sort((a, b) => a.localeCompare(b, 'fr'));
+    const colors = this.chartTheme();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    return {
       type: 'bar',
       data: {
-        labels: uLabels,
+        labels,
         datasets: [{
-          label: 'Utilisateurs',
-          data: uData,
-          backgroundColor: uLabels.map((_, i) => CHART_COLORS[i % CHART_COLORS.length] + 'cc'),
-          borderColor:     uLabels.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]),
-          borderWidth: 2,
-          borderRadius: 8,
+          label: datasetLabel,
+          data: labels.map(label => values[label]),
+          backgroundColor: labels.map((_, index) => `${CHART_COLORS[index % CHART_COLORS.length]}cc`),
+          borderColor: labels.map((_, index) => CHART_COLORS[index % CHART_COLORS.length]),
+          borderWidth: 1,
+          borderRadius: 9,
+          borderSkipped: false,
+          maxBarThickness: 44,
         }],
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, title: { display: false } },
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: reducedMotion ? 0 : 650 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: colors.tooltip,
+            titleColor: colors.text,
+            bodyColor: colors.label,
+            padding: 12,
+            cornerRadius: 10,
+            displayColors: false,
+          },
+        },
         scales: {
-          x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } },
-          y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } }, beginAtZero: true },
+          x: { grid: { display: false }, ticks: { color: colors.label, font: { size: 11, weight: 600 } }, border: { display: false } },
+          y: { beginAtZero: true, grid: { color: colors.grid }, ticks: { color: colors.label, precision: 0 }, border: { display: false } },
         },
       },
     };
+  }
 
-    const cLabels = Object.keys(s.lessonsByCategory);
-    const cData   = cLabels.map(k => s.lessonsByCategory[k]);
+  private createDoughnutChart(values: Record<string, number>, palette = CHART_COLORS): ChartConfiguration<'doughnut'> {
+    const labels = Object.keys(values).filter(label => values[label] > 0);
+    const colors = this.chartTheme();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    this.lessonsByCategoryChart = {
+    return {
       type: 'doughnut',
       data: {
-        labels: cLabels,
+        labels,
         datasets: [{
-          data: cData,
-          backgroundColor: CHART_COLORS.slice(0, cLabels.length).map(c => c + 'cc'),
-          borderColor:     CHART_COLORS.slice(0, cLabels.length),
+          data: labels.map(label => values[label]),
+          backgroundColor: labels.map((_, index) => `${palette[index % palette.length]}dd`),
+          borderColor: labels.map((_, index) => palette[index % palette.length]),
           borderWidth: 2,
-          hoverOffset: 8,
+          hoverOffset: reducedMotion ? 0 : 7,
         }],
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: reducedMotion ? 0 : 650 },
+        cutout: '70%',
         plugins: {
-          legend: { position: 'bottom', labels: { color: legendColor, padding: 16, font: { size: 11 } } },
-          title: { display: false },
+          legend: {
+            position: 'bottom',
+            labels: { color: colors.label, padding: 18, usePointStyle: true, pointStyle: 'circle', font: { size: 11, weight: 600 } },
+          },
+          tooltip: {
+            backgroundColor: colors.tooltip,
+            titleColor: colors.text,
+            bodyColor: colors.label,
+            padding: 12,
+            cornerRadius: 10,
+          },
         },
-        cutout: '68%',
       },
     };
+  }
+
+  private chartTheme(): { grid: string; label: string; text: string; tooltip: string } {
+    const styles = getComputedStyle(document.documentElement);
+    return {
+      grid: styles.getPropertyValue('--clr-chart-grid').trim(),
+      label: styles.getPropertyValue('--clr-chart-label').trim(),
+      text: styles.getPropertyValue('--clr-text').trim(),
+      tooltip: styles.getPropertyValue('--clr-surface-elevated').trim(),
+    };
+  }
+
+  private emptyBarChart(): ChartConfiguration<'bar'> {
+    return { type: 'bar', data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false } };
+  }
+
+  private emptyDoughnutChart(): ChartConfiguration<'doughnut'> {
+    return { type: 'doughnut', data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false } };
   }
 }

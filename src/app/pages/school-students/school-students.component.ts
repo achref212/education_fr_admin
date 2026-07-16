@@ -7,6 +7,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { UserProgressItemOut } from '../../core/models/progress.model';
 import { ApiService } from '../../core/http/api.service';
+import { SortableTableDirective } from '../../shared/sortable-table.directive';
 import { StudentParcoursDialogComponent } from '../../shared/student-parcours/student-parcours.dialog';
 
 const MAX_LESSONS = 20;
@@ -20,7 +21,7 @@ const AVATAR_COLORS = [
 @Component({
   selector: 'app-school-students',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule, MatDialogModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule, MatDialogModule, SortableTableDirective],
   templateUrl: './school-students.component.html',
   styleUrl: './school-students.component.scss',
 })
@@ -36,9 +37,9 @@ export class SchoolStudentsComponent implements OnInit {
   pageSize   = 10;
   pageIndex  = 0;
 
-  readonly paginated  = computed(() =>
-    this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize)
-  );
+  paginated(): UserProgressItemOut[] {
+    return this.filtered().slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize);
+  }
   readonly totalPages = computed(() => Math.ceil(this.filtered().length / this.pageSize));
 
   async ngOnInit(): Promise<void> {
@@ -67,7 +68,7 @@ export class SchoolStudentsComponent implements OnInit {
     this.pageIndex = 0;
   }
 
-  setPage(p: number): void { this.pageIndex = p; }
+  setPage(p: number): void { this.pageIndex = Math.max(0, Math.min(p, this.totalPages() - 1)); }
   pages(): number[] { return Array.from({ length: this.totalPages() }, (_, i) => i); }
 
   avatarColor(name: string | undefined): string {

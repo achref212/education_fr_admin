@@ -27,13 +27,13 @@
       <span class="empty-hint">Les élèves s'inscrivent via l'application mobile en sélectionnant votre établissement.</span>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>Élève</th>
-          <th>E-mail</th>
-          <th>Classe</th>
-          <th>Niveau</th>
+          <th data-sort-key="user.firstName">Élève</th>
+          <th data-sort-key="user.email">E-mail</th>
+          <th data-sort-key="user.classLevel">Classe</th>
+          <th data-sort-key="user.level">Niveau</th>
           <th>Leçons</th>
           <th>Quiz</th>
           <th>Score moyen</th>

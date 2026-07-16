@@ -40,16 +40,16 @@
       <p>Aucun test DELF enregistré</p>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>Élève</th>
-          <th>Classe</th>
-          <th>Objectif</th>
-          <th>Atteint</th>
-          <th>Score</th>
-          <th>Statut</th>
-          <th>Date</th>
+          <th data-sort-key="studentEmail">Élève</th>
+          <th data-sort-key="classLevel">Classe</th>
+          <th data-sort-key="targetDelfLevel">Objectif</th>
+          <th data-sort-key="achievedDelfLevel">Atteint</th>
+          <th data-sort-key="overallScore">Score</th>
+          <th data-sort-key="status">Statut</th>
+          <th data-sort-key="startedAt">Date</th>
           <th></th>
         </tr>
       </thead>

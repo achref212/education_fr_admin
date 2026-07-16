@@ -31,14 +31,14 @@
       <p>Aucune histoire trouvée</p>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>#</th>
-          <th>Titre</th>
-          <th>Niveau</th>
+          <th data-sort-key="id">#</th>
+          <th data-sort-key="title">Titre</th>
+          <th data-sort-key="level">Niveau</th>
           <th>Extrait</th>
-          <th>Audio</th>
+          <th data-sort-key="audioUrl">Audio</th>
           <th></th>
         </tr>
       </thead>

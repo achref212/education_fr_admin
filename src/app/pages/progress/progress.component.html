@@ -23,11 +23,11 @@
       <p>Aucune progression trouvée</p>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>Élève</th>
-          <th>E-mail</th>
+          <th data-sort-key="user.firstName">Élève</th>
+          <th data-sort-key="user.email">E-mail</th>
           <th>Leçons complétées</th>
           <th>Quiz réalisés</th>
           <th>Score moyen</th>

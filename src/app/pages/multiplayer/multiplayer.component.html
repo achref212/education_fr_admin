@@ -30,16 +30,16 @@
       <p>Aucune salle trouvée</p>
     </div>
   } @else {
-    <table class="data-table">
+    <table class="data-table" appSortableTable [sortRows]="filtered">
       <thead>
         <tr>
-          <th>Code salle</th>
-          <th>Libellé</th>
-          <th>Groupe</th>
-          <th>Statut</th>
-          <th>Partie</th>
+          <th data-sort-key="roomCode">Code salle</th>
+          <th data-sort-key="label">Libellé</th>
+          <th data-sort-key="classLevel">Groupe</th>
+          <th data-sort-key="status">Statut</th>
+          <th data-sort-key="activeSessionId">Partie</th>
           <th>Joueurs</th>
-          <th>Dernière activité</th>
+          <th data-sort-key="updatedAt">Dernière activité</th>
         </tr>
       </thead>
       <tbody>
