@@ -13,3 +13,23 @@
   opacity: 0.7;
   &:hover { opacity: 1; color: var(--clr-text); }
 }
+
+.metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--clr-text);
+  font-size: 12px;
+  font-weight: 700;
+
+  mat-icon {
+    width: 15px;
+    height: 15px;
+    font-size: 15px;
+    color: var(--clr-text-muted);
+  }
+}
+
+.default-badge {
+  margin-left: 6px;
+}

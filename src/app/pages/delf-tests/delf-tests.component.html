@@ -4,104 +4,315 @@
       <mat-icon class="ph-icon" style="color:#6366f1">assignment</mat-icon>
       Tests DELF
     </h1>
-    <p class="ph-sub">Historique des tests de niveau DELF par catégorie (Grammaire, Conjugaison, Orthographe, Vocabulaire)</p>
+    <p class="ph-sub">Sessions, modèles, questions et scoring DELF dans un seul espace admin.</p>
   </div>
   <div class="ph-actions">
-    <button class="btn-add" type="button" (click)="openConfig()">
-      <mat-icon>tune</mat-icon> Configurer les tests
-    </button>
+    @if (activeTab() === 'builder') {
+      <button class="btn-add" type="button" (click)="startNewTemplate()">
+        <mat-icon>add</mat-icon> Nouveau modèle
+      </button>
+    }
+    @if (activeTab() === 'questions') {
+      <button class="btn-add" type="button" (click)="openCreateQuestion()">
+        <mat-icon>add</mat-icon> Nouvelle question
+      </button>
+    }
   </div>
 </div>
 
-<div class="search-bar">
-  <mat-icon>search</mat-icon>
-  <input placeholder="Rechercher par élève, classe ou niveau DELF…"
-         [(ngModel)]="searchTerm" (input)="applyFilter()" />
-  @if (searchTerm) {
-    <mat-icon class="search-clear" (click)="searchTerm='';applyFilter()">close</mat-icon>
+<div class="delf-tabs">
+  @for (tab of tabs; track tab.key) {
+    <button type="button" [class.active]="activeTab() === tab.key" (click)="setTab(tab.key)">
+      <mat-icon>{{ tab.icon }}</mat-icon>
+      {{ tab.label }}
+    </button>
   }
 </div>
 
-<div class="filter-row">
-  <select class="page-size-select" [(ngModel)]="statusFilter" (change)="reload()">
-    <option value="">Tous les statuts</option>
-    <option value="completed">Terminés</option>
-    <option value="in_progress">En cours</option>
-    <option value="abandoned">Abandonnés</option>
-  </select>
-</div>
+@if (error()) {
+  <div class="inline-error"><mat-icon>error_outline</mat-icon>{{ error() }}</div>
+}
 
-<div class="table-wrap">
-  @if (loading()) {
-    <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
-  } @else if (filtered().length === 0) {
-    <div class="empty-state">
-      <mat-icon>assignment</mat-icon>
-      <p>Aucun test DELF enregistré</p>
+@if (loading()) {
+  <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+} @else {
+  @if (activeTab() === 'sessions') {
+    <div class="search-bar">
+      <mat-icon>search</mat-icon>
+      <input placeholder="Rechercher par élève, classe ou niveau DELF…"
+             [(ngModel)]="searchTerm" (input)="applyFilter()" />
+      @if (searchTerm) {
+        <mat-icon class="search-clear" (click)="searchTerm='';applyFilter()">close</mat-icon>
+      }
     </div>
-  } @else {
-    <table class="data-table" appSortableTable [sortRows]="filtered">
-      <thead>
-        <tr>
-          <th data-sort-key="studentEmail">Élève</th>
-          <th data-sort-key="classLevel">Classe</th>
-          <th data-sort-key="targetDelfLevel">Objectif</th>
-          <th data-sort-key="achievedDelfLevel">Atteint</th>
-          <th data-sort-key="overallScore">Score</th>
-          <th data-sort-key="status">Statut</th>
-          <th data-sort-key="startedAt">Date</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (row of paginated(); track row.sessionId) {
-          <tr (click)="openDetail(row)">
-            <td>
-              <div class="cell-primary">
-                <div>{{ studentName(row) }}</div>
-                <div class="cell-muted">{{ row.studentEmail }}</div>
-              </div>
-            </td>
-            <td><span class="cell-code">{{ row.classLevel }}</span></td>
-            <td><span class="badge badge-user">{{ row.targetDelfLevel }}</span></td>
-            <td>
-              @if (row.achievedDelfLevel) {
-                <span class="badge badge-active">{{ row.achievedDelfLevel }}</span>
-              } @else {
-                <span class="cell-muted">—</span>
+
+    <div class="filter-row">
+      <select class="page-size-select" [(ngModel)]="statusFilter" (change)="reload()">
+        <option value="">Tous les statuts</option>
+        <option value="completed">Terminés</option>
+        <option value="in_progress">En cours</option>
+        <option value="abandoned">Abandonnés</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      @if (filtered().length === 0) {
+        <div class="empty-state">
+          <mat-icon>assignment</mat-icon>
+          <p>Aucun test DELF enregistré</p>
+        </div>
+      } @else {
+        <table class="data-table" appSortableTable [sortRows]="filtered">
+          <thead>
+            <tr>
+              <th data-sort-key="studentEmail">Élève</th>
+              <th data-sort-key="classLevel">Classe</th>
+              <th data-sort-key="targetDelfLevel">Objectif</th>
+              <th data-sort-key="achievedDelfLevel">Atteint</th>
+              <th data-sort-key="overallScore">Score</th>
+              <th data-sort-key="status">Statut</th>
+              <th data-sort-key="startedAt">Date</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of paginated(); track row.sessionId) {
+              <tr (click)="openDetail(row)">
+                <td>
+                  <div class="cell-primary">
+                    <div>{{ studentName(row) }}</div>
+                    <div class="cell-muted">{{ row.studentEmail }}</div>
+                  </div>
+                </td>
+                <td><span class="cell-code">{{ row.classLevel }}</span></td>
+                <td><span class="badge badge-user">{{ row.targetDelfLevel }}</span></td>
+                <td>
+                  @if (row.achievedDelfLevel) {
+                    <span class="badge badge-active">{{ row.achievedDelfLevel }}</span>
+                  } @else {
+                    <span class="cell-muted">—</span>
+                  }
+                </td>
+                <td>
+                  @if (row.overallScore != null) {
+                    <span class="score-badge" [class.score-good]="row.overallScore >= 70" [class.score-bad]="row.overallScore < 50">
+                      {{ row.overallScore }}%
+                    </span>
+                  } @else {
+                    <span class="cell-muted">—</span>
+                  }
+                </td>
+                <td><span class="badge badge-read">{{ statusLabel(row.status) }}</span></td>
+                <td class="cell-muted">{{ row.finishedAt || row.startedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <button class="action-btn view" (click)="openDetail(row); $event.stopPropagation()" title="Détail">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (totalPages() > 1) {
+          <div class="pagination">
+            <button class="page-btn" (click)="setPage(pageIndex - 1)" [disabled]="pageIndex === 0"><mat-icon>chevron_left</mat-icon></button>
+            @for (p of pages(); track p) {
+              @if (p >= pageIndex - 2 && p <= pageIndex + 2) {
+                <button class="page-btn" [class.active]="p === pageIndex" (click)="setPage(p)">{{ p + 1 }}</button>
               }
-            </td>
-            <td>
-              @if (row.overallScore != null) {
-                <span class="score-badge" [class.score-good]="row.overallScore >= 70" [class.score-bad]="row.overallScore < 50">
-                  {{ row.overallScore }}%
-                </span>
-              } @else {
-                <span class="cell-muted">—</span>
-              }
-            </td>
-            <td><span class="badge badge-read">{{ statusLabel(row.status) }}</span></td>
-            <td class="cell-muted">{{ row.finishedAt || row.startedAt | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>
-              <button class="action-btn view" (click)="openDetail(row); $event.stopPropagation()" title="Détail">
-                <mat-icon>visibility</mat-icon>
-              </button>
-            </td>
-          </tr>
+            }
+            <button class="page-btn" (click)="setPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>chevron_right</mat-icon></button>
+          </div>
         }
-      </tbody>
-    </table>
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <button class="page-btn" (click)="setPage(pageIndex - 1)" [disabled]="pageIndex === 0"><mat-icon>chevron_left</mat-icon></button>
-        @for (p of pages(); track p) {
-          @if (p >= pageIndex - 2 && p <= pageIndex + 2) {
-            <button class="page-btn" [class.active]="p === pageIndex" (click)="setPage(p)">{{ p + 1 }}</button>
+        <div class="table-footer"><span>{{ filtered().length }} test(s)</span></div>
+      }
+    </div>
+  }
+
+  @if (activeTab() === 'builder') {
+    <div class="builder-grid">
+      <section class="builder-panel">
+        <h2>{{ templateId ? 'Modifier le modèle' : 'Nouveau modèle DELF' }}</h2>
+        <div class="form-grid">
+          <label>Nom
+            <input [(ngModel)]="templateName" placeholder="Ex: DELF 7ème année officiel" />
+          </label>
+          <label>Classe
+            <select [(ngModel)]="templateClassLevel" (change)="onTemplateClassChange()">
+              @for (lvl of levels; track lvl) {
+                <option [value]="lvl">{{ lvl }}</option>
+              }
+            </select>
+          </label>
+          <label>Objectif DELF
+            <select [(ngModel)]="templateTargetLevel">
+              @for (group of templateDelfGroups(); track group.track) {
+                <optgroup [label]="group.label">
+                  @for (lvl of group.levels; track lvl) {
+                    <option [value]="lvl">{{ lvl }}</option>
+                  }
+                </optgroup>
+              }
+            </select>
+          </label>
+          <label class="toggle-line">
+            <input type="checkbox" [(ngModel)]="templateActive" />
+            Actif pour cette classe
+          </label>
+        </div>
+        <p class="muted">Groupe {{ templateTrackLabel() }} · objectif recommandé {{ templateTargetLevel }}</p>
+        <label>Description
+          <textarea rows="2" [(ngModel)]="templateDescription" placeholder="Notes internes pour ce modèle"></textarea>
+        </label>
+
+        <div class="builder-sections">
+          @for (category of categories; track category) {
+            <div class="builder-section">
+              <div class="section-head">
+                <strong>{{ category }}</strong>
+                <span>{{ templateQuestionIds[category].length }} question(s)</span>
+              </div>
+              @if (categoryQuestions(category).length === 0) {
+                <p class="muted">Aucune question {{ category }} pour {{ templateClassLevel }}.</p>
+              } @else {
+                @for (q of categoryQuestions(category); track q.id) {
+                  <label class="question-choice">
+                    <input
+                      type="checkbox"
+                      [checked]="hasTemplateQuestion(category, q.id)"
+                      (change)="toggleTemplateQuestion(category, q.id, $any($event.target).checked)"
+                    />
+                    <span>{{ q.question }}</span>
+                  </label>
+                }
+              }
+            </div>
+          }
+        </div>
+
+        @if (templateError) {
+          <div class="inline-error"><mat-icon>error_outline</mat-icon>{{ templateError }}</div>
+        }
+        <div class="builder-actions">
+          <span>{{ templateTotal() }} question(s) sélectionnée(s)</span>
+          <button class="btn-save" type="button" [disabled]="templateSaving" (click)="saveTemplate()">
+            @if (templateSaving) { <mat-spinner diameter="18" /> } @else { <mat-icon>save</mat-icon> }
+            Enregistrer
+          </button>
+        </div>
+      </section>
+
+      <section class="builder-list">
+        <h2>Modèles enregistrés</h2>
+        @if (templates().length === 0) {
+          <div class="empty-state small"><mat-icon>view_module</mat-icon><p>Aucun modèle créé</p></div>
+        } @else {
+          @for (template of templates(); track template.id) {
+            <div class="template-row" [class.inactive]="!template.isActive">
+              <div>
+                <strong>{{ template.name }}</strong>
+                <span>{{ template.classLevel }} · DELF {{ template.targetDelfLevel }} · {{ template.totalQuestions }} questions</span>
+              </div>
+              <span class="badge" [class.badge-active]="template.isActive" [class.badge-read]="!template.isActive">
+                {{ template.isActive ? 'Actif' : 'Inactif' }}
+              </span>
+              <button class="action-btn edit" type="button" (click)="editTemplate(template)"><mat-icon>edit</mat-icon></button>
+              <button class="action-btn del" type="button" (click)="disableTemplate(template)"><mat-icon>block</mat-icon></button>
+            </div>
           }
         }
-        <button class="page-btn" (click)="setPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages() - 1"><mat-icon>chevron_right</mat-icon></button>
-      </div>
-    }
-    <div class="table-footer"><span>{{ filtered().length }} test(s)</span></div>
+      </section>
+    </div>
   }
-</div>
+
+  @if (activeTab() === 'questions') {
+    <div class="question-tools">
+      <div class="search-bar">
+        <mat-icon>search</mat-icon>
+        <input placeholder="Rechercher une question ou une option…" [(ngModel)]="questionSearch" (input)="applyQuestionFilter()" />
+      </div>
+      <select [(ngModel)]="questionCategory" (change)="applyQuestionFilter()">
+        <option value="">Toutes les catégories</option>
+        @for (cat of categories; track cat) { <option [value]="cat">{{ cat }}</option> }
+      </select>
+      <select [(ngModel)]="questionLevel" (change)="applyQuestionFilter()">
+        <option value="">Toutes les classes</option>
+        @for (lvl of levels; track lvl) { <option [value]="lvl">{{ lvl }}</option> }
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Catégorie</th>
+            <th>Classe</th>
+            <th>Réponse correcte</th>
+            <th>Options</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (q of filteredQuestions(); track q.id) {
+            <tr>
+              <td style="max-width:280px"><span class="cell-truncate">{{ q.question }}</span></td>
+              <td><span class="badge badge-user">{{ q.category }}</span></td>
+              <td><span class="cell-code">{{ q.level }}</span></td>
+              <td><span class="correct-option"><mat-icon>check_circle</mat-icon>{{ correctAnswer(q) }}</span></td>
+              <td>
+                <div class="options-pills">
+                  @for (opt of q.options; track opt; let i = $index) {
+                    <span class="opt-pill" [class.opt-correct]="i === q.correctIndex">{{ opt }}</span>
+                  }
+                </div>
+              </td>
+              <td>
+                <button class="action-btn edit" type="button" (click)="openEditQuestion(q)"><mat-icon>edit</mat-icon></button>
+                <button class="action-btn del" type="button" (click)="deleteQuestion(q)"><mat-icon>delete_outline</mat-icon></button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="table-footer"><span>{{ filteredQuestions().length }} question(s)</span></div>
+    </div>
+  }
+
+  @if (activeTab() === 'scoring') {
+    <section class="scoring-panel">
+      <h2>Calcul du score final</h2>
+      <p class="muted">Score catégorie = bonnes réponses / total. Score final = moyenne arrondie des catégories. Le niveau obtenu respecte le global minimum et le minimum par catégorie.</p>
+      @if (configLoading) {
+        <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+      } @else {
+        <label class="score-count">Questions par catégorie
+          <input type="number" min="1" max="20" [(ngModel)]="questionsPerCategory" />
+        </label>
+        <div class="threshold-grid">
+          @for (t of thresholds; track t.level; let i = $index) {
+            <div class="threshold-row">
+              <strong>{{ t.level }}</strong>
+              <label>Global %
+                <input type="number" min="0" max="100" [(ngModel)]="thresholds[i].minOverall" />
+              </label>
+              <label>Catégorie %
+                <input type="number" min="0" max="100" [(ngModel)]="thresholds[i].minCategory" />
+              </label>
+            </div>
+          }
+        </div>
+        @if (configError) {
+          <div class="inline-error"><mat-icon>error_outline</mat-icon>{{ configError }}</div>
+        }
+        <div class="builder-actions">
+          <span>Les seuils sont évalués du plus haut au plus bas côté API.</span>
+          <button class="btn-save" type="button" [disabled]="configSaving" (click)="saveConfig()">
+            @if (configSaving) { <mat-spinner diameter="18" /> } @else { <mat-icon>save</mat-icon> }
+            Enregistrer le scoring
+          </button>
+        </div>
+      }
+    </section>
+  }
+}

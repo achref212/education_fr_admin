@@ -8,14 +8,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { ApiService } from '../../core/http/api.service';
 import { DelfLevelThreshold, DelfTestConfigOut } from '../../core/models/delf-test.model';
+import { DELF_DEFAULT_THRESHOLDS } from '../../core/constants/delf-targets';
 
-const DEFAULT_THRESHOLDS: DelfLevelThreshold[] = [
-  { level: 'B1', minOverall: 85, minCategory: 75 },
-  { level: 'A2/B1', minOverall: 75, minCategory: 65 },
-  { level: 'A2', minOverall: 65, minCategory: 55 },
-  { level: 'A1+', minOverall: 50, minCategory: 40 },
-  { level: 'A1', minOverall: 35, minCategory: 25 },
-];
+const DEFAULT_THRESHOLDS: DelfLevelThreshold[] = DELF_DEFAULT_THRESHOLDS.map((t) => ({ ...t }));
 
 @Component({
   selector: 'app-delf-test-config-dialog',

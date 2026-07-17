@@ -5,6 +5,11 @@ export interface LearningPathOut {
   description?: string | null;
   delfTargetLevel: string;
   isActive: boolean;
+  minScore?: number | null;
+  maxScore?: number | null;
+  isDefault: boolean;
+  stepCount: number;
+  assignedUsersCount: number;
   createdAt: string;
 }
 
@@ -27,6 +32,9 @@ export interface LearningPathCreateIn {
   title: string;
   delfTargetLevel: string;
   description?: string | null;
+  minScore?: number | null;
+  maxScore?: number | null;
+  isDefault?: boolean;
 }
 
 export interface LearningPathUpdateIn {
@@ -34,6 +42,9 @@ export interface LearningPathUpdateIn {
   description?: string | null;
   delfTargetLevel?: string;
   isActive?: boolean;
+  minScore?: number | null;
+  maxScore?: number | null;
+  isDefault?: boolean;
 }
 
 export interface LearningPathStepCreateIn {

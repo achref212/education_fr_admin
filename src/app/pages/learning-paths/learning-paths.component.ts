@@ -1,15 +1,15 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { LEVELS } from '../../core/constants/form-options';
 import { LearningPathOut } from '../../core/models/learning-path.model';
 import { ApiService } from '../../core/http/api.service';
 import { SortableTableDirective } from '../../shared/sortable-table.directive';
-import { DetailDialogComponent, DetailDialogData } from '../../shared/detail-dialog/detail-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { LearningPathFormDialogComponent } from './learning-path-form.dialog';
 import { LearningPathStepsDialogComponent } from './learning-path-steps.dialog';
 
@@ -76,13 +76,11 @@ export class LearningPathsComponent implements OnInit {
   }
 
   openCreate(): void {
-    const existingClassLevels = this.paths().map((p) => p.classLevel);
     this.dialog
       .open(LearningPathFormDialogComponent, {
         panelClass: 'form-dialog-panel',
-        width: '560px',
+        width: '640px',
         maxWidth: '96vw',
-        data: { existingClassLevels },
       })
       .afterClosed()
       .subscribe((ok) => {
@@ -94,7 +92,7 @@ export class LearningPathsComponent implements OnInit {
     this.dialog
       .open(LearningPathFormDialogComponent, {
         panelClass: 'form-dialog-panel',
-        width: '560px',
+        width: '640px',
         maxWidth: '96vw',
         data: { path },
       })
@@ -108,26 +106,37 @@ export class LearningPathsComponent implements OnInit {
     this.dialog.open(LearningPathStepsDialogComponent, {
       panelClass: 'detail-panel',
       data: { path },
-      width: '640px',
+      width: '1040px',
       maxWidth: '96vw',
     });
   }
 
+  scoreRange(path: LearningPathOut): string {
+    if (path.minScore == null && path.maxScore == null) return 'Tous scores';
+    const min = path.minScore ?? 0;
+    const max = path.maxScore ?? 100;
+    return `${min}% - ${max}%`;
+  }
+
   openDetail(path: LearningPathOut): void {
-    const data: DetailDialogData = {
-      title: path.title,
-      subtitle: path.classLevel,
-      icon: 'route',
-      gradient: 'linear-gradient(135deg,#6366f1,#06b6d4)',
-      fields: [
-        { label: 'Niveau scolaire', value: path.classLevel },
-        { label: 'Objectif DELF', value: path.delfTargetLevel, type: 'badge', badgeClass: 'badge-active' },
-        { label: 'Description', value: path.description ?? '—', type: 'long' },
-        { label: 'Statut', value: path.isActive ? 'Actif' : 'Inactif', type: 'badge',
-          badgeClass: path.isActive ? 'badge-active' : 'badge-inactive' },
-        { label: 'Créé le', value: new Date(path.createdAt).toLocaleDateString('fr-FR') },
-      ],
+    this.openSteps(path);
+  }
+
+  async confirmDelete(path: LearningPathOut): Promise<void> {
+    const assigned = path.assignedUsersCount || 0;
+    const message = assigned > 0
+      ? `Supprimer « ${path.title} » ? ${assigned} élève(s) perdront cette affectation et repasseront sur le parcours correspondant à leur test DELF.`
+      : `Supprimer « ${path.title} » et toutes ses étapes ?`;
+    const data: ConfirmDialogData = {
+      title: 'Supprimer le parcours',
+      message,
+      confirmText: 'Supprimer',
     };
-    this.dialog.open(DetailDialogComponent, { data, panelClass: 'detail-panel' });
+    const ok = await firstValueFrom(
+      this.dialog.open(ConfirmDialogComponent, { data, width: '420px' }).afterClosed(),
+    );
+    if (!ok) return;
+    await this.api.delete(`/admin/learning-paths/${path.id}`);
+    await this.reload();
   }
 }

@@ -73,10 +73,13 @@ export type GameFormData = { game?: GameOut | null };
         </form>
       </div>
       <div class="fd-footer">
-        <button mat-button mat-dialog-close type="button">Annuler</button>
-        <button class="fd-submit" type="button" [disabled]="form.invalid || saving" (click)="save()">
-          @if (saving) { <mat-spinner diameter="18" /> } @else { <mat-icon>save</mat-icon> }
-          {{ isEdit ? 'Enregistrer' : 'Créer' }}
+        <button class="fd-btn-cancel" mat-dialog-close type="button">
+          <mat-icon>close</mat-icon>
+          Annuler
+        </button>
+        <button class="fd-btn-save" type="button" [disabled]="form.invalid || saving" (click)="save()">
+          @if (saving) { <mat-spinner class="fd-spinner" diameter="18" /> } @else { <mat-icon>save</mat-icon> }
+          <span>{{ isEdit ? 'Enregistrer' : 'Créer' }}</span>
         </button>
       </div>
     </div>

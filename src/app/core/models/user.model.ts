@@ -12,6 +12,7 @@ export interface UserOut {
   mustChangePassword?: boolean;
   phone?: string;
   dateOfBirth?: string;
+  assignedLearningPathId?: string | null;
 }
 
 export interface AdminUserOut extends UserOut {

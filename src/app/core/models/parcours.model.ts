@@ -15,6 +15,7 @@ export interface ParcoursStepOut {
 
 export interface ParcoursOut {
   pathId: string;
+  assignedPathId?: string | null;
   title: string;
   description?: string | null;
   classLevel: string;

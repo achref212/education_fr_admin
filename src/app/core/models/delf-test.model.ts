@@ -66,3 +66,32 @@ export interface DelfTestQuestionResultOut {
   correctIndex?: number | null;
   explanation?: string | null;
 }
+
+export interface DelfTestQuestionOut {
+  id: string;
+  question: string;
+  options: string[];
+  category: string;
+  level: string;
+}
+
+export interface DelfTestTemplateSectionOut {
+  category: string;
+  questionIds: string[];
+  questionCount: number;
+  questions?: DelfTestQuestionOut[] | null;
+}
+
+export interface DelfTestTemplateOut {
+  id: string;
+  name: string;
+  description?: string | null;
+  classLevel: string;
+  targetDelfLevel: string;
+  isActive: boolean;
+  questionIdsByCategory: Record<string, string[]>;
+  sections: DelfTestTemplateSectionOut[];
+  totalQuestions: number;
+  createdAt: string;
+  updatedAt: string;
+}

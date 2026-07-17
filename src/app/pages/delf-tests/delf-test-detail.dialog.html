@@ -17,6 +17,13 @@
         <div class="dtd-kpi"><span>Score global</span><strong>{{ r.overallScore ?? '—' }}%</strong></div>
       </div>
       <p class="dtd-comparison">{{ comparisonLabel(r.comparisonToTarget) }}</p>
+      <p class="dtd-formula">
+        Score final = moyenne arrondie des scores catégorie :
+        @for (cat of categoryKeys(r.categoryScores); track cat; let last = $last) {
+          <span>{{ r.categoryScores[cat] }}%{{ last ? '' : ' + ' }}</span>
+        }
+        = <strong>{{ r.overallScore ?? 0 }}%</strong>
+      </p>
 
       <div class="dtd-categories">
         @for (cat of categoryKeys(r.categoryScores); track cat) {
@@ -36,7 +43,29 @@
             <h3>{{ section.category }} — {{ section.score }}%</h3>
             @for (q of section.questions; track q.questionId) {
               <div class="dtd-q" [class.dtd-q--ok]="q.isCorrect" [class.dtd-q--ko]="!q.isCorrect">
-                <div class="dtd-q-text">{{ q.question }}</div>
+                <div class="dtd-q-text">
+                  <mat-icon>{{ q.isCorrect ? 'check_circle' : 'cancel' }}</mat-icon>
+                  {{ q.question }}
+                </div>
+                <div class="dtd-options">
+                  @for (opt of q.options; track opt; let i = $index) {
+                    <div
+                      class="dtd-option"
+                      [class.correct]="i === q.correctIndex"
+                      [class.selected-ok]="i === q.selectedIndex && q.isCorrect"
+                      [class.selected-ko]="i === q.selectedIndex && !q.isCorrect"
+                    >
+                      <span class="dtd-option-index">{{ i + 1 }}</span>
+                      <span>{{ opt }}</span>
+                      @if (i === q.correctIndex) {
+                        <strong>Correct</strong>
+                      }
+                      @if (i === q.selectedIndex) {
+                        <em>Choisi</em>
+                      }
+                    </div>
+                  }
+                </div>
                 @if (q.explanation) {
                   <div class="dtd-q-exp">{{ q.explanation }}</div>
                 }

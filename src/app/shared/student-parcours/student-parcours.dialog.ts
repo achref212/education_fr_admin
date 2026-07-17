@@ -12,7 +12,7 @@ import {
   STEP_STATUS_LABELS,
 } from '../../core/constants/delf-targets';
 import { ApiService } from '../../core/http/api.service';
-import { DelfTestHistoryOut } from '../../core/models/delf-test.model';
+import { DelfTestHistoryOut, DelfTestSessionAdminOut } from '../../core/models/delf-test.model';
 import { ParcoursOut, ParcoursStepOut } from '../../core/models/parcours.model';
 import { AdminUserOut } from '../../core/models/user.model';
 import { UserProgressItemOut } from '../../core/models/progress.model';
@@ -70,6 +70,21 @@ export class StudentParcoursDialogComponent implements OnInit {
         path = `/prof/students/${this.data.user.id}/delf-tests`;
       } else if (this.auth.isSchool()) {
         path = `/school/students/${this.data.user.id}/delf-tests`;
+      } else if (this.auth.isAdmin()) {
+        const items = await this.api.get<DelfTestSessionAdminOut[]>(
+          `/admin/delf-tests?userId=${this.data.user.id}&status=completed`,
+        );
+        this.delfTests.set(items.map((item) => ({
+          sessionId: item.sessionId,
+          classLevel: item.classLevel,
+          targetDelfLevel: item.targetDelfLevel,
+          achievedDelfLevel: item.achievedDelfLevel,
+          overallScore: item.overallScore,
+          categoryScores: item.categoryScores,
+          comparisonToTarget: '',
+          finishedAt: item.finishedAt,
+        })));
+        return;
       } else {
         return;
       }
@@ -81,13 +96,16 @@ export class StudentParcoursDialogComponent implements OnInit {
   }
 
   async loadParcours(): Promise<void> {
-    if (!this.auth.isProf()) {
+    if (!this.auth.isProf() && !this.auth.isAdmin()) {
       this.loading.set(false);
       return;
     }
     try {
+      const path = this.auth.isAdmin()
+        ? `/admin/users/${this.data.user.id}/parcours`
+        : `/prof/students/${this.data.user.id}/parcours`;
       const result = await this.api.get<ParcoursOut>(
-        `/prof/students/${this.data.user.id}/parcours`,
+        path,
       );
       this.parcours.set(result);
     } catch (e: unknown) {

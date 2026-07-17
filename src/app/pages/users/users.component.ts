@@ -107,6 +107,11 @@ export class UsersComponent implements OnInit {
     return this.auth.user()?.role === 'prof';
   }
 
+  get canViewParcours(): boolean {
+    const role = this.auth.user()?.role;
+    return role === 'admin' || role === 'prof';
+  }
+
   openParcours(u: AdminUserOut): void {
     this.dialog.open(StudentParcoursDialogComponent, {
       data: { user: u },

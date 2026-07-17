@@ -4,7 +4,7 @@
       <mat-icon class="ph-icon" style="color:#6366f1">route</mat-icon>
       Parcours d'apprentissage
     </h1>
-    <p class="ph-sub">Gérez les parcours DELF par niveau scolaire (2ème à 9ème année) — un parcours par niveau</p>
+    <p class="ph-sub">Gérez les parcours DELF réutilisables, leurs tranches de score et leurs étapes</p>
   </div>
   <div class="ph-actions">
     <button class="btn-add" (click)="openCreate()">
@@ -29,7 +29,7 @@
     <div class="empty-state">
       <mat-icon>route</mat-icon>
       <p>Aucun parcours configuré</p>
-      <span class="empty-hint">Exécutez le script seed_parcours.py ou créez un parcours manuellement.</span>
+      <span class="empty-hint">Créez un parcours puis ajoutez ses étapes depuis le détail.</span>
     </div>
   } @else {
     <table class="data-table" appSortableTable [sortRows]="filtered">
@@ -38,8 +38,10 @@
           <th data-sort-key="title">Parcours</th>
           <th data-sort-key="classLevel">Niveau</th>
           <th data-sort-key="delfTargetLevel">Objectif DELF</th>
+          <th>Score DELF</th>
+          <th data-sort-key="stepCount">Étapes</th>
+          <th data-sort-key="assignedUsersCount">Élèves</th>
           <th data-sort-key="isActive">Statut</th>
-          <th data-sort-key="createdAt">Créé le</th>
           <th></th>
         </tr>
       </thead>
@@ -59,12 +61,27 @@
             </td>
             <td><span class="cell-code">{{ p.classLevel }}</span></td>
             <td><span class="badge badge-active">{{ p.delfTargetLevel }}</span></td>
+            <td><span class="cell-code">{{ scoreRange(p) }}</span></td>
+            <td>
+              <span class="metric-chip">
+                <mat-icon>list_alt</mat-icon>
+                {{ p.stepCount || 0 }}
+              </span>
+            </td>
+            <td>
+              <span class="metric-chip">
+                <mat-icon>groups</mat-icon>
+                {{ p.assignedUsersCount || 0 }}
+              </span>
+            </td>
             <td>
               <span class="badge" [class.badge-active]="p.isActive" [class.badge-inactive]="!p.isActive">
                 {{ p.isActive ? 'Actif' : 'Inactif' }}
               </span>
+              @if (p.isDefault) {
+                <span class="badge badge-read default-badge">Défaut</span>
+              }
             </td>
-            <td class="cell-muted">{{ p.createdAt | date:'dd/MM/yyyy' }}</td>
             <td>
               <div class="actions-cell">
                 <button class="action-btn view" (click)="openSteps(p); $event.stopPropagation()" title="Étapes">
@@ -72,6 +89,9 @@
                 </button>
                 <button class="action-btn edit" (click)="openEdit(p); $event.stopPropagation()" title="Modifier">
                   <mat-icon>edit</mat-icon>
+                </button>
+                <button class="action-btn del" (click)="confirmDelete(p); $event.stopPropagation()" title="Supprimer">
+                  <mat-icon>delete_outline</mat-icon>
                 </button>
               </div>
             </td>

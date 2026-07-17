@@ -82,7 +82,7 @@
             <td class="cell-muted">{{ u.createdAt | date:'dd/MM/yyyy' }}</td>
             <td>
               <div class="actions-cell">
-                @if (isProfView) {
+                @if (canViewParcours && u.role === 'user') {
                   <button class="action-btn view" (click)="openParcours(u); $event.stopPropagation()" title="Parcours DELF">
                     <mat-icon>route</mat-icon>
                   </button>
