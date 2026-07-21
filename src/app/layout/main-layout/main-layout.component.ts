@@ -115,6 +115,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     { label: 'Progression',     path: '/progress',          icon: 'trending_up',     gradient: 'linear-gradient(135deg,#10b981,#06b6d4)' },
     { label: 'Parcours DELF',   path: '/learning-paths',  icon: 'route',           gradient: 'linear-gradient(135deg,#6366f1,#06b6d4)', adminOnly: true },
     { label: 'Tests DELF',      path: '/delf-tests',      icon: 'assignment',      gradient: 'linear-gradient(135deg,#6366f1,#ec4899)', adminOnly: true },
+    { label: 'Assistant IA',     path: '/ai-delf-assistant', icon: 'auto_awesome',  gradient: 'linear-gradient(135deg,#16a67a,#06b6d4)', adminOnly: true },
     { label: 'Jeux',            path: '/games',             icon: 'sports_esports',  gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)', adminOnly: true },
     { label: 'Messages',        path: '/contact-messages',  icon: 'mail',            gradient: 'linear-gradient(135deg,#f97316,#fb923c)' },
     { label: 'Multijoueur',     path: '/multiplayer',       icon: 'groups',          gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },

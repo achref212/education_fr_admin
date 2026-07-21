@@ -85,6 +85,29 @@
       </div>
     </section>
 
+    @if (auth.isAdmin()) {
+      <section class="dashboard-section ai-widget-section" aria-labelledby="ai-widget-title">
+        <div class="ai-widget">
+          <div class="ai-widget__copy">
+            <span class="section-kicker">Assistant IA DELF</span>
+            <h2 id="ai-widget-title">Générez des brouillons, validez avant création</h2>
+            <p>{{ aiProviderSummary }}</p>
+          </div>
+          <div class="ai-widget__actions">
+            <a class="ai-main-link" routerLink="/ai-delf-assistant">
+              <mat-icon>auto_awesome</mat-icon>Ouvrir l’espace complet
+            </a>
+            <div class="ai-shortcuts" aria-label="Raccourcis IA">
+              <a routerLink="/ai-delf-assistant" [queryParams]="{ mode: 'questions' }"><mat-icon>quiz</mat-icon>Questions</a>
+              <a routerLink="/ai-delf-assistant" [queryParams]="{ mode: 'test' }"><mat-icon>assignment</mat-icon>Test DELF</a>
+              <a routerLink="/ai-delf-assistant" [queryParams]="{ mode: 'lesson' }"><mat-icon>menu_book</mat-icon>Leçon</a>
+              <a routerLink="/ai-delf-assistant" [queryParams]="{ mode: 'path' }"><mat-icon>route</mat-icon>Parcours</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
     <section class="dashboard-section" aria-labelledby="analytics-title">
       <div class="section-heading anim-fade-up">
         <div>

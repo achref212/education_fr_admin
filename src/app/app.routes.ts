@@ -115,6 +115,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'ai-delf-assistant',
+        canActivate: [adminRoleGuard],
+        loadComponent: () =>
+          import('./pages/ai-delf-assistant/ai-delf-assistant.component').then(
+            (m) => m.AiDelfAssistantComponent,
+          ),
+      },
+      {
         path: 'profile',
         loadComponent: () =>
           import('./pages/profile/profile.component').then(

@@ -185,6 +185,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return this.auth.isAdmin() ? 'Équilibre des contenus pédagogiques' : 'Comptes actifs et comptes à réactiver';
   }
 
+  get aiProviderSummary(): string {
+    return 'Hugging Face Qwen en principal, NVIDIA Llama en secours';
+  }
+
   get hasLevelData(): boolean {
     return (this.levelChart().data.labels?.length ?? 0) > 0;
   }
@@ -225,6 +229,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { label: 'Messages', description: 'Répondre aux demandes des utilisateurs.', icon: 'forum', route: '/contact-messages', accent: '#f97316', count: () => this.stats()?.unreadMessages ?? 0 },
     { label: 'Multijoueur', description: 'Superviser les salles et les sessions de jeu.', icon: 'sports_esports', route: '/multiplayer', accent: '#9b5de5', count: () => this.stats()?.multiplayerRooms ?? 0 },
     { label: 'Parcours DELF', description: 'Structurer les étapes et objectifs DELF.', icon: 'route', route: '/learning-paths', accent: '#3b82f6', count: () => 0 },
+    { label: 'Assistant IA DELF', description: 'Générer des brouillons de questions, tests et leçons.', icon: 'auto_awesome', route: '/ai-delf-assistant', accent: '#16a67a', count: () => 0 },
   ];
 
   private readonly schoolModules: ModuleCard[] = [
@@ -243,6 +248,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { label: 'Gérer les élèves', description: 'Comptes et progression', icon: 'manage_accounts', route: '/users', accent: '#6d5dfc' },
     { label: 'Voir les messages', description: 'Demandes en attente', icon: 'mark_email_unread', route: '/contact-messages', accent: '#f97316' },
     { label: 'Configurer DELF', description: 'Parcours et évaluations', icon: 'route', route: '/learning-paths', accent: '#3b82f6' },
+    { label: 'Assistant IA', description: 'Générer du contenu DELF', icon: 'auto_awesome', route: '/ai-delf-assistant', accent: '#16a67a' },
   ];
 
   private readonly schoolActions: QuickAction[] = [

@@ -1,0 +1,294 @@
+<div class="ai-page">
+  <section class="ai-header">
+    <div>
+      <span class="eyebrow"><mat-icon>auto_awesome</mat-icon>Assistant IA DELF</span>
+      <h1>Générer, vérifier, puis créer</h1>
+      <p>Chaque réponse IA reste un brouillon modifiable jusqu’à validation humaine.</p>
+    </div>
+    <div class="provider-chip" [class.backup]="provider()?.usedBackup">
+      <mat-icon>{{ provider()?.usedBackup ? 'sync_problem' : 'memory' }}</mat-icon>
+      <span>{{ providerLabel() }}</span>
+    </div>
+  </section>
+
+  <section class="controls">
+    <mat-form-field appearance="outline">
+      <mat-label>Niveau scolaire</mat-label>
+      <mat-select [(ngModel)]="classLevel" (selectionChange)="syncDelfTarget()">
+        @for (level of levels; track level) {
+          <mat-option [value]="level">{{ level }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Niveau DELF</mat-label>
+      <mat-select [(ngModel)]="targetDelfLevel">
+        @for (level of delfLevels; track level) {
+          <mat-option [value]="level">{{ level }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Difficulté</mat-label>
+      <mat-select [(ngModel)]="difficulty">
+        <mat-option value="easy">Facile</mat-option>
+        <mat-option value="medium">Moyen</mat-option>
+        <mat-option value="hard">Difficile</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre</mat-label>
+      <input matInput type="number" min="1" max="20" [(ngModel)]="count">
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="instructions">
+      <mat-label>Consignes professeur</mat-label>
+      <textarea matInput rows="2" [(ngModel)]="teacherInstructions"></textarea>
+    </mat-form-field>
+  </section>
+
+  @if (error()) {
+    <div class="notice error"><mat-icon>error_outline</mat-icon>{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="notice success"><mat-icon>check_circle</mat-icon>{{ success() }}</div>
+  }
+
+  <mat-tab-group class="ai-tabs" [(selectedIndex)]="selectedTabIndex" [mat-stretch-tabs]="true" animationDuration="180ms">
+    <mat-tab label="Questions">
+      <section class="tab-panel">
+        <div class="panel-actions">
+          <mat-form-field appearance="outline" class="category-field">
+            <mat-label>Catégorie quiz</mat-label>
+            <mat-icon matPrefix>category</mat-icon>
+            <mat-select [(ngModel)]="quizCategory">
+              @for (category of quizCategories; track category) {
+                <mat-option [value]="category">{{ category }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="action-row">
+            <button mat-flat-button color="primary" (click)="generateQuestions()" [disabled]="loading() !== null">
+              @if (loading() === 'questions') { <mat-spinner diameter="18"></mat-spinner> } @else { <mat-icon>auto_awesome</mat-icon> }
+              Générer
+            </button>
+            @if (questions().length) {
+              <button mat-stroked-button color="primary" (click)="generateQuestions()" [disabled]="loading() !== null">
+                <mat-icon>refresh</mat-icon>Régénérer tout
+              </button>
+              <button mat-stroked-button color="primary" (click)="saveReadyQuestions()" [disabled]="saving() !== null">
+                <mat-icon>library_add_check</mat-icon>Créer tout ce qui est valide
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="draft-grid">
+          @for (question of questions(); track $index; let i = $index) {
+            <article class="draft-card" [class.saved]="question.saved">
+              <header>
+                <span>Question {{ i + 1 }}</span>
+                <strong [class]="'status ' + statusClass(statusForQuestion(question))">{{ statusForQuestion(question) }}</strong>
+              </header>
+              <div class="meta-row">
+                <span><mat-icon>category</mat-icon>{{ question.category }}</span>
+                <span><mat-icon>school</mat-icon>{{ question.level }}</span>
+              </div>
+              <label class="field-label">Question</label>
+              <textarea [(ngModel)]="question.question" rows="3"></textarea>
+              <label class="field-label">Options et bonne réponse</label>
+              <div class="options">
+                @for (option of question.options; track $index; let optionIndex = $index) {
+                  <label [class.correct]="question.correctIndex === optionIndex">
+                    <input type="radio" [name]="'q' + i" [checked]="question.correctIndex === optionIndex" (change)="question.correctIndex = optionIndex">
+                    <input [(ngModel)]="question.options[optionIndex]">
+                  </label>
+                }
+              </div>
+              <label class="field-label">Explication</label>
+              <textarea [(ngModel)]="question.explanation" rows="2"></textarea>
+              @if (questionErrors(question).length) {
+                <ul class="validation-list">
+                  @for (item of questionErrors(question); track item) { <li>{{ item }}</li> }
+                </ul>
+              }
+              <div class="draft-actions">
+                <button mat-stroked-button type="button" (click)="regenerateQuestion(i)" [disabled]="loading() !== null || question.saved">
+                  <mat-icon>refresh</mat-icon>Régénérer cette question
+                </button>
+                <button mat-flat-button color="primary" (click)="saveQuestion(question, 'q' + i)" [disabled]="question.saved || saving() === 'q' + i || questionErrors(question).length > 0">
+                  <mat-icon>{{ question.saved ? 'check' : 'add_circle' }}</mat-icon>{{ question.saved ? 'Créée' : 'Créer' }}
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    </mat-tab>
+
+    <mat-tab label="Test DELF">
+      <section class="tab-panel">
+        <div class="panel-actions">
+          <span class="review-status" [ngClass]="statusClass(testStatus())">{{ testStatus() }}</span>
+          <div class="action-row">
+            <button mat-flat-button color="primary" (click)="generateTest()" [disabled]="loading() !== null">
+              @if (loading() === 'test') { <mat-spinner diameter="18"></mat-spinner> } @else { <mat-icon>assignment</mat-icon> }
+              Générer un test
+            </button>
+            @if (test()) {
+              <button mat-stroked-button color="primary" (click)="generateTest()" [disabled]="loading() !== null">
+                <mat-icon>refresh</mat-icon>Régénérer tout
+              </button>
+              <button mat-stroked-button color="primary" (click)="saveTestQuestions()" [disabled]="saving() === 'test' || testErrors(test()).length > 0">
+                <mat-icon>library_add_check</mat-icon>Créer le test complet
+              </button>
+            }
+          </div>
+        </div>
+        @if (test(); as draft) {
+          <article class="wide-draft">
+            <label class="field-label">Nom du modèle</label>
+            <input class="title-input" [(ngModel)]="draft.name">
+            <label class="field-label">Description</label>
+            <textarea [(ngModel)]="draft.description" rows="2"></textarea>
+            @if (testErrors(draft).length) {
+              <ul class="validation-list">
+                @for (item of testErrors(draft); track item) { <li>{{ item }}</li> }
+              </ul>
+            }
+            @for (entry of testQuestionEntries(); track entry.category) {
+              <section class="category-review">
+                <header>
+                  <h3>{{ entry.category }}</h3>
+                  <span>{{ entry.questions.length }} question(s)</span>
+                </header>
+                <div class="draft-grid">
+                  @for (question of entry.questions; track $index; let questionIndex = $index) {
+                    <article class="mini-question">
+                      <div class="mini-head">
+                        <strong [class]="'status ' + statusClass(statusForQuestion(question))">{{ statusForQuestion(question) }}</strong>
+                        <button mat-stroked-button type="button" (click)="regenerateTestQuestion(entry.category, questionIndex)" [disabled]="loading() !== null || question.saved">
+                          <mat-icon>refresh</mat-icon>Régénérer
+                        </button>
+                      </div>
+                      <textarea [(ngModel)]="question.question" rows="2"></textarea>
+                      <div class="options">
+                        @for (option of question.options; track $index; let optionIndex = $index) {
+                          <label [class.correct]="question.correctIndex === optionIndex">
+                            <input type="radio" [name]="'test-' + entry.category + '-' + questionIndex" [checked]="question.correctIndex === optionIndex" (change)="question.correctIndex = optionIndex">
+                            <input [(ngModel)]="question.options[optionIndex]">
+                          </label>
+                        }
+                      </div>
+                      <textarea [(ngModel)]="question.explanation" rows="2" placeholder="Explication"></textarea>
+                      @if (questionErrors(question).length) {
+                        <ul class="validation-list compact">
+                          @for (item of questionErrors(question); track item) { <li>{{ item }}</li> }
+                        </ul>
+                      }
+                    </article>
+                  }
+                </div>
+              </section>
+            }
+          </article>
+        }
+      </section>
+    </mat-tab>
+
+    <mat-tab label="Leçon">
+      <section class="tab-panel">
+        <div class="panel-actions">
+          <mat-form-field appearance="outline" class="category-field">
+            <mat-label>Catégorie leçon</mat-label>
+            <mat-icon matPrefix>category</mat-icon>
+            <mat-select [(ngModel)]="lessonCategory">
+              @for (category of lessonCategories; track category) {
+                <mat-option [value]="category">{{ category }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="action-row">
+            <span class="review-status" [ngClass]="statusClass(statusForLesson())">{{ statusForLesson() }}</span>
+            <button mat-flat-button color="primary" (click)="generateLesson()" [disabled]="loading() !== null">
+              @if (loading() === 'lesson') { <mat-spinner diameter="18"></mat-spinner> } @else { <mat-icon>menu_book</mat-icon> }
+              Générer une leçon
+            </button>
+            @if (lesson()) {
+              <button mat-stroked-button color="primary" (click)="generateLesson()" [disabled]="loading() !== null">
+                <mat-icon>refresh</mat-icon>Régénérer
+              </button>
+            }
+          </div>
+        </div>
+        @if (lesson(); as draft) {
+          <article class="wide-draft">
+            <label class="field-label">Titre</label>
+            <input class="title-input" [(ngModel)]="draft.title">
+            <div class="inline-fields">
+              <label>Catégorie<input [(ngModel)]="draft.category"></label>
+              <label>Niveau<input [(ngModel)]="draft.level"></label>
+            </div>
+            <label class="field-label">Contenu</label>
+            <textarea class="content-input" [(ngModel)]="draft.content" rows="12"></textarea>
+            @if (lessonErrors(draft).length) {
+              <ul class="validation-list">
+                @for (item of lessonErrors(draft); track item) { <li>{{ item }}</li> }
+              </ul>
+            }
+            <button mat-stroked-button color="primary" (click)="saveLesson()" [disabled]="draft.saved || saving() === 'lesson' || lessonErrors(draft).length > 0">
+              <mat-icon>{{ draft.saved ? 'check' : 'add_circle' }}</mat-icon>{{ draft.saved ? 'Créée' : 'Créer la leçon' }}
+            </button>
+          </article>
+        }
+      </section>
+    </mat-tab>
+
+    <mat-tab label="Parcours">
+      <section class="tab-panel">
+        <div class="panel-actions">
+          <span class="review-status" [ngClass]="statusClass(statusForPath())">{{ statusForPath() }}</span>
+          <div class="action-row">
+            <button mat-flat-button color="primary" (click)="generatePath()" [disabled]="loading() !== null">
+              @if (loading() === 'path') { <mat-spinner diameter="18"></mat-spinner> } @else { <mat-icon>route</mat-icon> }
+              Générer un parcours
+            </button>
+            @if (path()) {
+              <button mat-stroked-button color="primary" (click)="generatePath()" [disabled]="loading() !== null">
+                <mat-icon>refresh</mat-icon>Régénérer
+              </button>
+            }
+          </div>
+        </div>
+        @if (path(); as draft) {
+          <article class="wide-draft">
+            <label class="field-label">Titre</label>
+            <input class="title-input" [(ngModel)]="draft.title">
+            <label class="field-label">Description</label>
+            <textarea [(ngModel)]="draft.description" rows="5"></textarea>
+            <div class="score-row">
+              <label>Score min <input type="number" min="0" max="100" [(ngModel)]="draft.minScore"></label>
+              <label>Score max <input type="number" min="0" max="100" [(ngModel)]="draft.maxScore"></label>
+              <label class="check"><input type="checkbox" [(ngModel)]="draft.isDefault">Parcours par défaut</label>
+            </div>
+            @if (pathErrors(draft).length) {
+              <ul class="validation-list">
+                @for (item of pathErrors(draft); track item) { <li>{{ item }}</li> }
+              </ul>
+            }
+            <button mat-stroked-button color="primary" (click)="savePath()" [disabled]="draft.saved || saving() === 'path' || pathErrors(draft).length > 0">
+              <mat-icon>{{ draft.saved ? 'check' : 'add_circle' }}</mat-icon>{{ draft.saved ? 'Créé' : 'Créer le parcours' }}
+            </button>
+          </article>
+        }
+      </section>
+    </mat-tab>
+  </mat-tab-group>
+
+  @if (!hasDrafts()) {
+    <section class="empty-state">
+      <mat-icon>auto_fix_high</mat-icon>
+      <h2>Aucun brouillon généré</h2>
+      <p>Choisissez un onglet, ajustez les paramètres, puis lancez la génération.</p>
+    </section>
+  }
+</div>
