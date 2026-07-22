@@ -16,6 +16,7 @@ import { NgClass } from '@angular/common';
 
 import { StoryOut } from '../../core/models/story.model';
 import { ApiService } from '../../core/http/api.service';
+import { AssetService } from '../../core/services/asset.service';
 import { LEVELS } from '../../core/constants/form-options';
 
 export type StoryFormData = { row?: StoryOut | null };
@@ -117,6 +118,12 @@ export type StoryFormData = { row?: StoryOut | null };
           </div>
 
           @if (audioMode === 'url') {
+            <label class="fd-upload-line">
+              <input type="file" accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg" (change)="uploadAudio($event)" />
+              @if (uploadingAudio) { <mat-spinner diameter="18" class="fd-spinner"></mat-spinner> }
+              @else { <mat-icon>upload_file</mat-icon> }
+              Importer un audio
+            </label>
             <mat-form-field appearance="outline" class="fd-full">
               <mat-label>URL du fichier audio</mat-label>
               <mat-icon matPrefix>link</mat-icon>
@@ -124,6 +131,9 @@ export type StoryFormData = { row?: StoryOut | null };
                      placeholder="https://..." />
               <mat-hint>Format mp3, ogg ou wav recommandé</mat-hint>
             </mat-form-field>
+            @if (form.controls.audioUrl.value) {
+              <audio class="fd-audio-preview" controls [src]="audioPreviewUrl()"></audio>
+            }
           }
 
           @if (error) {
@@ -148,15 +158,26 @@ export type StoryFormData = { row?: StoryOut | null };
       </div>
     </div>
   `,
-  styles: [`@use '../../shared/form-dialog';`],
+  styles: [`
+    @use '../../shared/form-dialog';
+    .fd-upload-line {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 42px; border: 1px dashed rgba(255,255,255,.18); border-radius: 8px;
+      color: var(--clr-text); font-size: 13px; font-weight: 700; cursor: pointer;
+      input { display: none; }
+    }
+    .fd-audio-preview { width: 100%; max-width: 100%; }
+  `],
 })
 export class StoryFormDialogComponent {
   private readonly api = inject(ApiService);
+  private readonly assets = inject(AssetService);
   private readonly fb  = inject(FormBuilder);
 
   readonly levels = LEVELS;
   audioMode: 'none' | 'url' = 'none';
   saving = false;
+  uploadingAudio = false;
   error  = '';
 
   form = this.fb.nonNullable.group({
@@ -204,5 +225,33 @@ export class StoryFormDialogComponent {
     } finally {
       this.saving = false;
     }
+  }
+
+  async uploadAudio(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.uploadingAudio = true;
+    this.error = '';
+    try {
+      const asset = await this.assets.upload({
+        file,
+        assetType: 'audio',
+        ownerType: this.data.row ? 'story' : null,
+        ownerId: this.data.row?.id ?? null,
+        title: this.form.controls.title.value || file.name,
+      });
+      this.form.patchValue({ audioUrl: asset.url });
+      this.audioMode = 'url';
+    } catch {
+      this.error = 'Erreur lors du téléversement audio.';
+    } finally {
+      this.uploadingAudio = false;
+      input.value = '';
+    }
+  }
+
+  audioPreviewUrl(): string {
+    return this.assets.resolveUrl(this.form.controls.audioUrl.value);
   }
 }

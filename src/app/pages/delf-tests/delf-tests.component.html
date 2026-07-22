@@ -7,6 +7,11 @@
     <p class="ph-sub">Sessions, modèles, questions et scoring DELF dans un seul espace admin.</p>
   </div>
   <div class="ph-actions">
+    @if (activeTab() === 'mockExams') {
+      <button class="btn-add" type="button" (click)="startNewMockExam()">
+        <mat-icon>add</mat-icon> Nouvel examen blanc
+      </button>
+    }
     @if (activeTab() === 'builder') {
       <button class="btn-add" type="button" (click)="startNewTemplate()">
         <mat-icon>add</mat-icon> Nouveau modèle
@@ -127,6 +132,178 @@
         <div class="table-footer"><span>{{ filtered().length }} test(s)</span></div>
       }
     </div>
+  }
+
+  @if (activeTab() === 'mockExams') {
+    <div class="mock-layout">
+      <section class="builder-list">
+        <div class="mock-list-head">
+          <h2>Examens blancs</h2>
+          <span>{{ mockExamList().length }} sujet(s)</span>
+        </div>
+        <div class="mock-filters">
+          <select [(ngModel)]="mockTrackFilter">
+            <option value="">Toutes les déclinaisons</option>
+            <option value="Prime">Prime</option>
+            <option value="Junior">Junior</option>
+          </select>
+          <select [(ngModel)]="mockLevelFilter">
+            <option value="">Tous les niveaux</option>
+            @for (lvl of delfLevels; track lvl) { <option [value]="lvl">{{ lvl }}</option> }
+          </select>
+          <select [(ngModel)]="mockStatusFilter">
+            <option value="">Actifs</option>
+            <option value="draft">Brouillons</option>
+            <option value="published">Publiés</option>
+            <option value="archived">Archivés</option>
+          </select>
+        </div>
+        @if (mockExamList().length === 0) {
+          <div class="empty-state small"><mat-icon>library_books</mat-icon><p>Aucun examen blanc</p></div>
+        } @else {
+          @for (exam of mockExamList(); track exam.id) {
+            <div class="template-row mock-row" [class.inactive]="exam.status === 'archived'">
+              <div>
+                <strong>{{ exam.title }}</strong>
+                <span>{{ exam.track }} · {{ exam.level }} · {{ exam.totalDurationMinutes }} min · {{ exam.totalPoints }} points</span>
+              </div>
+              <span class="badge" [class.badge-active]="exam.status === 'published'" [class.badge-read]="exam.status !== 'published'">
+                {{ exam.status === 'published' ? 'Publié' : exam.status === 'draft' ? 'Brouillon' : 'Archivé' }}
+              </span>
+              <button class="action-btn view" type="button" (click)="editMockExam(exam)"><mat-icon>visibility</mat-icon></button>
+              <button class="action-btn edit" type="button" (click)="editMockExam(exam)"><mat-icon>edit</mat-icon></button>
+              <button class="action-btn del" type="button" (click)="archiveMockExam(exam)"><mat-icon>archive</mat-icon></button>
+            </div>
+          }
+        }
+      </section>
+
+      <section class="builder-panel mock-editor">
+        <div class="mock-list-head">
+          <h2>{{ mockExamId ? 'Modifier l’examen blanc' : 'Nouvel examen blanc' }}</h2>
+          <button class="btn-save secondary" type="button" [disabled]="mockGenerating" (click)="generateMockExam()">
+            @if (mockGenerating) { <mat-spinner diameter="18" /> } @else { <mat-icon>auto_awesome</mat-icon> }
+            Générer IA
+          </button>
+        </div>
+        <div class="form-grid">
+          <label>Déclinaison
+            <select [(ngModel)]="mockTrack" (change)="onMockTrackChange()">
+              <option value="Prime">Prime</option>
+              <option value="Junior">Junior</option>
+            </select>
+          </label>
+          <label>Niveau
+            <select [(ngModel)]="mockLevel">
+              @for (lvl of mockLevelsForTrack(); track lvl) { <option [value]="lvl">{{ lvl }}</option> }
+            </select>
+          </label>
+          <label>Statut
+            <select [(ngModel)]="mockStatus">
+              <option value="draft">Brouillon</option>
+              <option value="published">Publié</option>
+              <option value="archived">Archivé</option>
+            </select>
+          </label>
+          <label>Titre
+            <input [(ngModel)]="mockTitle" />
+          </label>
+        </div>
+        <label>Description
+          <textarea rows="2" [(ngModel)]="mockDescription"></textarea>
+        </label>
+        <label>Notes source
+          <textarea rows="2" [(ngModel)]="mockSourceNotes"></textarea>
+        </label>
+        <label>Épreuves et exercices JSON
+          <textarea class="json-editor" rows="16" [(ngModel)]="mockSectionsJson"></textarea>
+        </label>
+        @if (mockSectionsForAudio().length) {
+          <div class="mock-audio-tools">
+            @for (section of mockSectionsForAudio(); track section.sectionOrder) {
+              <div class="mock-audio-row">
+                <span>{{ section.title || sectionTypeLabel(section.sectionType) }}</span>
+                @if (section.audioUrl) {
+                  <audio controls [src]="resolvedUrl(section.audioUrl)"></audio>
+                }
+                <label class="mock-upload-btn">
+                  <input type="file" accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg" (change)="uploadMockSectionAudio($event, section.sectionOrder)" />
+                  @if (uploadingMockAudioOrder === section.sectionOrder) { <mat-spinner diameter="18" /> }
+                  @else { <mat-icon>upload_file</mat-icon> }
+                  Audio
+                </label>
+              </div>
+            }
+          </div>
+        }
+        <label>Ressources JSON
+          <textarea class="json-editor" rows="4" [(ngModel)]="mockAssetsJson"></textarea>
+        </label>
+
+        @if (mockError) {
+          <div class="inline-error"><mat-icon>error_outline</mat-icon>{{ mockError }}</div>
+        }
+        @if (mockSuccess) {
+          <div class="inline-success"><mat-icon>check_circle</mat-icon>{{ mockSuccess }}</div>
+        }
+        <div class="builder-actions">
+          <span>Chaque épreuve doit valoir 25 points, total 100.</span>
+          <div class="mock-actions">
+            <button class="btn-save secondary" type="button" (click)="previewMockFromForm()">
+              <mat-icon>visibility</mat-icon> Prévisualiser
+            </button>
+            <button class="btn-save" type="button" [disabled]="mockSaving" (click)="saveMockExam()">
+              @if (mockSaving) { <mat-spinner diameter="18" /> } @else { <mat-icon>save</mat-icon> }
+              Enregistrer
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    @if (mockPreview) {
+      <section class="mock-preview">
+        <div class="preview-title">
+          <div>
+            <h2>{{ mockPreview.title }}</h2>
+            <p>{{ mockPreview.track }} · {{ mockPreview.level }} · {{ mockPreview.totalDurationMinutes }} min · {{ mockPreview.totalPoints }} points</p>
+          </div>
+          <span class="badge badge-active">{{ mockPreview.status }}</span>
+        </div>
+        @if (mockPreview.description) {
+          <p class="muted">{{ mockPreview.description }}</p>
+        }
+        <div class="preview-sections">
+          @for (section of mockPreview.sections; track section.sectionOrder) {
+            <article class="preview-section">
+              <header>
+                <span>{{ section.sectionOrder }}</span>
+                <div>
+                  <h3>{{ sectionTypeLabel(section.sectionType) }}</h3>
+                  <p>{{ section.durationMinutes }} min · {{ section.points }} points</p>
+                </div>
+              </header>
+              <p>{{ section.instructions }}</p>
+              @if (section.audioUrl) {
+                <audio controls [src]="resolvedUrl(section.audioUrl)"></audio>
+              }
+              @for (item of section.items; track item.itemOrder) {
+                <div class="preview-item">
+                  <strong>{{ item.itemOrder }}. {{ item.title }} · {{ item.points }} pts</strong>
+                  <p>{{ item.prompt }}</p>
+                  <pre>{{ item.content | json }}</pre>
+                  <details>
+                    <summary>Correction et grille</summary>
+                    <pre>{{ item.answerKey | json }}</pre>
+                    <pre>{{ item.rubric | json }}</pre>
+                  </details>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      </section>
+    }
   }
 
   @if (activeTab() === 'builder') {

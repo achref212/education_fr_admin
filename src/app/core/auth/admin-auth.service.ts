@@ -34,6 +34,8 @@ export interface ProfileUpdatePayload {
   city?: string | null;
   postalCode?: string | null;
   directorName?: string | null;
+  profilePictureUrl?: string | null;
+  logoUrl?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -253,6 +255,7 @@ export class AdminAuthService {
       isActive: school.isActive,
       mustChangePassword: school.mustChangePassword,
       createdAt: school.createdAt,
+      profilePictureUrl: school.logoUrl ?? null,
     };
     localStorage.setItem(USER_KEY, JSON.stringify(accountData));
     this.userSignal.set(accountData);

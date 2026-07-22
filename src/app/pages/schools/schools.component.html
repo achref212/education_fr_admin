@@ -54,7 +54,11 @@
             <td>
               <div class="cell-primary">
                 <div class="cell-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">
-                  {{ avatarLetter(s) }}
+                  @if (s.logoUrl) {
+                    <img [src]="imageUrl(s.logoUrl)" alt="" />
+                  } @else {
+                    {{ avatarLetter(s) }}
+                  }
                 </div>
                 <div>
                   <div class="cell-name">{{ s.name }}</div>

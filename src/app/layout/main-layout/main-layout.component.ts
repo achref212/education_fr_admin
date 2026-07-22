@@ -9,6 +9,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { ChangePasswordDialogComponent } from '../../shared/change-password-dialog/change-password-dialog.component';
+import { environment } from '../../../environments/environment';
 
 interface NavItem {
   label: string;
@@ -103,6 +104,14 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     return words.slice(0, 2).map(word => word.charAt(0).toUpperCase()).join('') || 'D';
   }
 
+  get userImageUrl(): string {
+    const url = this.auth.user()?.profilePictureUrl;
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) return url;
+    const base = environment.apiUrl.replace(/\/$/, '');
+    return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+
   readonly nav: NavItem[] = [
     { label: 'Tableau de bord', path: '/dashboard',        icon: 'dashboard',       gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
     { label: 'Élèves',          path: '/students',         icon: 'school',          gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', schoolOnly: true },
@@ -116,6 +125,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     { label: 'Parcours DELF',   path: '/learning-paths',  icon: 'route',           gradient: 'linear-gradient(135deg,#6366f1,#06b6d4)', adminOnly: true },
     { label: 'Tests DELF',      path: '/delf-tests',      icon: 'assignment',      gradient: 'linear-gradient(135deg,#6366f1,#ec4899)', adminOnly: true },
     { label: 'Assistant IA',     path: '/ai-delf-assistant', icon: 'auto_awesome',  gradient: 'linear-gradient(135deg,#16a67a,#06b6d4)', adminOnly: true },
+    { label: 'Assets',          path: '/assets',           icon: 'perm_media',      gradient: 'linear-gradient(135deg,#06b6d4,#3b82f6)', adminOnly: true },
     { label: 'Jeux',            path: '/games',             icon: 'sports_esports',  gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)', adminOnly: true },
     { label: 'Messages',        path: '/contact-messages',  icon: 'mail',            gradient: 'linear-gradient(135deg,#f97316,#fb923c)' },
     { label: 'Multijoueur',     path: '/multiplayer',       icon: 'groups',          gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)' },

@@ -13,6 +13,7 @@ export interface UserOut {
   phone?: string;
   dateOfBirth?: string;
   assignedLearningPathId?: string | null;
+  profilePictureUrl?: string | null;
 }
 
 export interface AdminUserOut extends UserOut {
@@ -33,6 +34,7 @@ export interface SchoolOut {
   postalCode?: string;
   phone?: string;
   directorName?: string;
+  logoUrl?: string | null;
 }
 
 export interface ProfCreateOut {

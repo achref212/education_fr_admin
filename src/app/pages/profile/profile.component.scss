@@ -38,8 +38,39 @@
   width: 52px; height: 52px; border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
   background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  overflow: hidden;
   mat-icon { color: white; }
+  img { width: 100%; height: 100%; object-fit: cover; }
   &.password { background: linear-gradient(135deg,#f59e0b,#f97316); }
+}
+
+.image-tools {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 156px;
+  height: 56px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+  color: var(--clr-text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+
+  input { display: none; }
+}
+
+@media (max-width: 640px) {
+  .image-tools { grid-template-columns: 1fr; }
 }
 
 .role-badge {

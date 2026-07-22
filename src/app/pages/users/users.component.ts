@@ -103,6 +103,10 @@ export class UsersComponent implements OnInit {
     return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
   }
 
+  imageUrl(url?: string | null): string {
+    return this.api.resolveUrl(url);
+  }
+
   get isProfView(): boolean {
     return this.auth.user()?.role === 'prof';
   }

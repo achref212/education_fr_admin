@@ -56,7 +56,11 @@
             <td>
               <div class="cell-primary">
                 <div class="cell-avatar" [style.background]="avatarColor(u.firstName || u.name)">
-                  {{ (u.firstName || u.name || '?')[0] }}{{ (u.lastName || '')[0] || '' }}
+                  @if (u.profilePictureUrl) {
+                    <img [src]="imageUrl(u.profilePictureUrl)" alt="" />
+                  } @else {
+                    {{ (u.firstName || u.name || '?')[0] }}{{ (u.lastName || '')[0] || '' }}
+                  }
                 </div>
                 <div>
                   <div>{{ u.name ? u.name : ((u.firstName || '') + ' ' + (u.lastName || '')) }}</div>

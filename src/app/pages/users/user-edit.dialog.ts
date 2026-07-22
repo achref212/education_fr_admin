@@ -61,6 +61,12 @@ export interface UserEditData { user: AdminUserOut; }
 
           <!-- level -->
           <mat-form-field appearance="outline" class="fd-full">
+            <mat-label>URL photo profil</mat-label>
+            <mat-icon matPrefix>image</mat-icon>
+            <input matInput formControlName="profilePictureUrl" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="fd-full">
             <mat-label>Niveau scolaire</mat-label>
             <mat-icon matPrefix>school</mat-icon>
             <mat-select formControlName="level">
@@ -153,6 +159,7 @@ export class UserEditDialogComponent {
     role:     ['', Validators.required],
     level:    ['', Validators.required],
     isActive: [true],
+    profilePictureUrl: [''],
   });
 
   constructor(
@@ -163,6 +170,7 @@ export class UserEditDialogComponent {
       role:     data.user.role,
       level:    data.user.level,
       isActive: data.user.isActive,
+      profilePictureUrl: data.user.profilePictureUrl ?? '',
     });
   }
 
@@ -176,6 +184,7 @@ export class UserEditDialogComponent {
         role:     v.role,
         level:    v.level,
         isActive: v.isActive,
+        profilePictureUrl: v.profilePictureUrl || null,
       });
       this.dialogRef.close(true);
     } catch {

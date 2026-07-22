@@ -45,7 +45,11 @@
     @if (!sidebarCollapsed) {
       <a class="sidebar-user" routerLink="/profile" @fadeLabel>
         <div class="user-avatar" aria-hidden="true">
-          <mat-icon>{{ roleIcon }}</mat-icon>
+          @if (userImageUrl) {
+            <img [src]="userImageUrl" alt="" />
+          } @else {
+            <mat-icon>{{ roleIcon }}</mat-icon>
+          }
         </div>
         <div class="user-info">
           <span class="user-name">{{ userName }}</span>
@@ -132,7 +136,11 @@
         </button>
 
         <a class="topbar-profile" routerLink="/profile" [attr.aria-label]="'Ouvrir le profil de ' + userName">
-          <span>{{ userInitials }}</span>
+          @if (userImageUrl) {
+            <img [src]="userImageUrl" alt="" />
+          } @else {
+            <span>{{ userInitials }}</span>
+          }
           <span class="profile-status" aria-hidden="true"></span>
         </a>
       </div>

@@ -17,7 +17,13 @@
   <div class="profile-grid">
     <section class="profile-card">
       <div class="card-head">
-        <div class="avatar"><mat-icon>person</mat-icon></div>
+        <div class="avatar image-avatar">
+          @if (currentImageUrl()) {
+            <img [src]="currentImageUrl()" alt="" />
+          } @else {
+            <mat-icon>{{ isSchool ? 'school' : 'person' }}</mat-icon>
+          }
+        </div>
         <div>
           <h2>Informations du compte</h2>
           <span class="role-badge">{{ roleLabel }}</span>
@@ -44,6 +50,18 @@
       </div>
 
       <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="profile-form">
+        <div class="image-tools">
+          <label class="upload-btn">
+            <input type="file" accept="image/png,image/jpeg,image/webp" (change)="uploadProfileImage($event)" />
+            @if (uploadingImage()) { <mat-spinner diameter="18"></mat-spinner> }
+            @else { <mat-icon>photo_camera</mat-icon> }
+            Changer l'image
+          </label>
+          <mat-form-field appearance="outline" class="w100">
+            <mat-label>{{ isSchool ? 'URL du logo' : 'URL photo profil' }}</mat-label>
+            <input matInput [formControlName]="isSchool ? 'logoUrl' : 'profilePictureUrl'" />
+          </mat-form-field>
+        </div>
         @if (isSchool) {
           <mat-form-field appearance="outline" class="w100">
             <mat-label>Nom de l'établissement</mat-label>

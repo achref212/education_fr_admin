@@ -8,16 +8,21 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import {
+  DelfMockExamOut,
+  DelfMockSection,
   DelfLevelThreshold,
   DelfTestConfigOut,
   DelfTestSessionAdminOut,
   DelfTestTemplateOut,
 } from '../../core/models/delf-test.model';
+import { AIDelfMockExamOut } from '../../core/models/ai-content.model';
 import { QuizQuestionOut } from '../../core/models/quiz.model';
 import { ApiService } from '../../core/http/api.service';
+import { AssetService } from '../../core/services/asset.service';
 import { QUIZ_CATEGORIES, LEVELS } from '../../core/constants/form-options';
 import {
   DELF_DEFAULT_THRESHOLDS,
+  DELF_LEVELS,
   DELF_LEVEL_GROUPS,
   DELF_TARGETS_BY_CLASS,
   delfGroupsForClass,
@@ -28,7 +33,7 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-
 import { QuizFormDialogComponent } from '../quiz-questions/quiz-form.dialog';
 import { DelfTestDetailDialogComponent } from './delf-test-detail.dialog';
 
-type DelfTab = 'sessions' | 'builder' | 'questions' | 'scoring';
+type DelfTab = 'sessions' | 'mockExams' | 'builder' | 'questions' | 'scoring';
 
 const DEFAULT_THRESHOLDS: DelfLevelThreshold[] = DELF_DEFAULT_THRESHOLDS.map((t) => ({ ...t }));
 
@@ -49,13 +54,16 @@ const DEFAULT_THRESHOLDS: DelfLevelThreshold[] = DELF_DEFAULT_THRESHOLDS.map((t)
 })
 export class DelfTestsComponent implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly assets = inject(AssetService);
   private readonly dialog = inject(MatDialog);
 
   readonly categories = QUIZ_CATEGORIES;
   readonly levels = LEVELS;
+  readonly delfLevels = DELF_LEVELS;
   readonly delfLevelGroups = DELF_LEVEL_GROUPS;
   readonly tabs: { key: DelfTab; label: string; icon: string }[] = [
     { key: 'sessions', label: 'Sessions', icon: 'assignment' },
+    { key: 'mockExams', label: 'Examens blancs', icon: 'library_books' },
     { key: 'builder', label: 'Builder', icon: 'view_module' },
     { key: 'questions', label: 'Questions', icon: 'quiz' },
     { key: 'scoring', label: 'Scoring', icon: 'tune' },
@@ -74,6 +82,7 @@ export class DelfTestsComponent implements OnInit {
   readonly totalPages = computed(() => Math.ceil(this.filtered().length / this.pageSize));
 
   readonly templates = signal<DelfTestTemplateOut[]>([]);
+  readonly mockExams = signal<DelfMockExamOut[]>([]);
   readonly questions = signal<QuizQuestionOut[]>([]);
   readonly filteredQuestions = signal<QuizQuestionOut[]>([]);
   questionSearch = '';
@@ -96,8 +105,34 @@ export class DelfTestsComponent implements OnInit {
   questionsPerCategory = 5;
   thresholds: DelfLevelThreshold[] = DEFAULT_THRESHOLDS.map((t) => ({ ...t }));
 
+  mockExamId: string | null = null;
+  mockTrack: 'Prime' | 'Junior' = 'Prime';
+  mockLevel = 'A1.1';
+  mockStatus: 'draft' | 'published' | 'archived' = 'draft';
+  mockTitle = '';
+  mockDescription = '';
+  mockSourceNotes = '';
+  mockSectionsJson = '';
+  mockAssetsJson = '[]';
+  mockTrackFilter = '';
+  mockLevelFilter = '';
+  mockStatusFilter = '';
+  mockSaving = false;
+  mockGenerating = false;
+  uploadingMockAudioOrder: number | null = null;
+  mockError = '';
+  mockSuccess = '';
+  mockPreview: DelfMockExamOut | null = null;
+
   async ngOnInit(): Promise<void> {
-    await Promise.all([this.reload(), this.loadTemplates(), this.loadQuestions(), this.loadConfig()]);
+    this.startNewMockExam();
+    await Promise.all([
+      this.reload(),
+      this.loadMockExams(),
+      this.loadTemplates(),
+      this.loadQuestions(),
+      this.loadConfig(),
+    ]);
     this.loading.set(false);
   }
 
@@ -179,6 +214,293 @@ export class DelfTestsComponent implements OnInit {
     } catch (e: unknown) {
       this.templateError = this.extractError(e, 'Erreur de chargement des modèles DELF.');
     }
+  }
+
+  async loadMockExams(): Promise<void> {
+    try {
+      this.mockExams.set(await this.api.get<DelfMockExamOut[]>('/admin/delf-mock-exams'));
+    } catch (e: unknown) {
+      this.mockError = this.extractError(e, 'Erreur de chargement des examens blancs.');
+    }
+  }
+
+  mockExamList(): DelfMockExamOut[] {
+    return this.mockExams().filter((exam) => {
+      if (this.mockTrackFilter && exam.track !== this.mockTrackFilter) return false;
+      if (this.mockLevelFilter && exam.level !== this.mockLevelFilter) return false;
+      if (this.mockStatusFilter && exam.status !== this.mockStatusFilter) return false;
+      return true;
+    });
+  }
+
+  startNewMockExam(): void {
+    this.mockExamId = null;
+    this.mockTrack = 'Prime';
+    this.mockLevel = 'A1.1';
+    this.mockStatus = 'draft';
+    this.mockTitle = 'Examen blanc DELF Prime A1.1';
+    this.mockDescription = '';
+    this.mockSourceNotes = 'Contenu original de préparation. Relecture professeur obligatoire.';
+    this.mockSectionsJson = JSON.stringify(this.defaultMockSections(), null, 2);
+    this.mockAssetsJson = '[]';
+    this.mockPreview = null;
+    this.mockError = '';
+    this.mockSuccess = '';
+  }
+
+  editMockExam(exam: DelfMockExamOut): void {
+    this.mockExamId = exam.id;
+    this.mockTrack = exam.track;
+    this.mockLevel = exam.level;
+    this.mockStatus = exam.status;
+    this.mockTitle = exam.title;
+    this.mockDescription = exam.description ?? '';
+    this.mockSourceNotes = exam.sourceNotes ?? '';
+    this.mockSectionsJson = JSON.stringify(exam.sections.map(({ id, examId, ...section }) => ({
+      ...section,
+      items: section.items.map(({ id: _id, sectionId: _sectionId, ...item }) => item),
+    })), null, 2);
+    this.mockAssetsJson = JSON.stringify(exam.assets.map(({ id, examId, createdAt, ...asset }) => asset), null, 2);
+    this.mockPreview = exam;
+    this.mockError = '';
+    this.mockSuccess = '';
+  }
+
+  onMockTrackChange(): void {
+    const allowed = this.mockLevelsForTrack();
+    if (!allowed.includes(this.mockLevel)) this.mockLevel = allowed[0];
+  }
+
+  mockLevelsForTrack(): string[] {
+    return this.mockTrack === 'Prime' ? ['A1.1', 'A1', 'A2'] : ['A1', 'A2', 'B1', 'B2'];
+  }
+
+  async generateMockExam(): Promise<void> {
+    this.mockGenerating = true;
+    this.mockError = '';
+    this.mockSuccess = '';
+    try {
+      const result = await this.api.post<AIDelfMockExamOut>('/admin/ai/generate-delf-mock-exam', {
+        classLevel: this.classLevelForMock(),
+        targetDelfLevel: this.mockLevel,
+        count: 3,
+        difficulty: 'medium',
+        teacherInstructions: `Créer un examen blanc DELF ${this.mockTrack} ${this.mockLevel}, original, relisible par un professeur.`,
+      });
+      this.mockTrack = result.exam.track;
+      this.mockLevel = result.exam.level;
+      this.mockStatus = 'draft';
+      this.mockTitle = result.exam.title;
+      this.mockDescription = result.exam.description ?? '';
+      this.mockSourceNotes = result.exam.sourceNotes ?? '';
+      this.mockSectionsJson = JSON.stringify(result.exam.sections, null, 2);
+      this.mockAssetsJson = JSON.stringify(result.exam.assets, null, 2);
+      this.mockPreview = null;
+      this.mockSuccess = 'Brouillon généré. Relisez puis enregistrez.';
+    } catch (e: unknown) {
+      this.mockError = this.extractError(e, 'La génération IA a échoué.');
+    } finally {
+      this.mockGenerating = false;
+    }
+  }
+
+  previewMockFromForm(): void {
+    try {
+      const payload = this.mockPayload();
+      this.mockPreview = {
+        id: this.mockExamId ?? 'preview',
+        track: payload.track,
+        level: payload.level,
+        title: payload.title,
+        description: payload.description,
+        status: payload.status,
+        totalDurationMinutes: payload.sections.reduce((sum, s) => sum + Number(s.durationMinutes || 0), 0),
+        totalPoints: payload.sections.reduce((sum, s) => sum + Number(s.points || 0), 0),
+        sourceNotes: payload.sourceNotes,
+        sections: payload.sections.map((section) => ({
+          ...section,
+          id: '',
+          examId: '',
+          items: section.items.map((item) => ({ ...item, id: '', sectionId: '' })),
+        })),
+        assets: payload.assets,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      this.mockError = '';
+    } catch (e: unknown) {
+      this.mockPreview = null;
+      this.mockError = this.extractError(e, 'Structure JSON invalide.');
+    }
+  }
+
+  async saveMockExam(): Promise<void> {
+    let payload;
+    try {
+      payload = this.mockPayload();
+    } catch (e: unknown) {
+      this.mockError = this.extractError(e, 'Structure JSON invalide.');
+      return;
+    }
+    this.mockSaving = true;
+    this.mockError = '';
+    this.mockSuccess = '';
+    try {
+      if (this.mockExamId) {
+        await this.api.put<DelfMockExamOut>(`/admin/delf-mock-exams/${this.mockExamId}`, payload);
+      } else {
+        await this.api.post<DelfMockExamOut>('/admin/delf-mock-exams', payload);
+      }
+      await this.loadMockExams();
+      this.startNewMockExam();
+      this.mockSuccess = 'Examen blanc enregistré.';
+    } catch (e: unknown) {
+      this.mockError = this.extractError(e, 'Erreur lors de la sauvegarde de l’examen blanc.');
+    } finally {
+      this.mockSaving = false;
+    }
+  }
+
+  async archiveMockExam(exam: DelfMockExamOut): Promise<void> {
+    const data: ConfirmDialogData = {
+      title: 'Archiver l’examen blanc',
+      message: `Archiver "${exam.title}" ? Il ne sera plus visible par défaut.`,
+    };
+    const ok = await firstValueFrom(
+      this.dialog.open(ConfirmDialogComponent, { data, width: '380px' }).afterClosed(),
+    );
+    if (!ok) return;
+    await this.api.delete(`/admin/delf-mock-exams/${exam.id}`);
+    await this.loadMockExams();
+    if (this.mockExamId === exam.id) this.startNewMockExam();
+  }
+
+  sectionTypeLabel(type: string): string {
+    return {
+      listening: 'Compréhension de l’oral',
+      reading: 'Compréhension des écrits',
+      writing: 'Production écrite',
+      speaking: 'Production orale',
+    }[type] ?? type;
+  }
+
+  mockSectionsForAudio(): DelfMockSection[] {
+    try {
+      const sections = JSON.parse(this.mockSectionsJson) as DelfMockSection[];
+      return sections.filter((section) => section.sectionType === 'listening');
+    } catch {
+      return [];
+    }
+  }
+
+  async uploadMockSectionAudio(event: Event, sectionOrder: number): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.uploadingMockAudioOrder = sectionOrder;
+    this.mockError = '';
+    try {
+      const asset = await this.assets.upload({
+        file,
+        assetType: 'audio',
+        ownerType: this.mockExamId ? 'delf_mock_exam' : null,
+        ownerId: this.mockExamId,
+        title: `${this.mockTitle || 'Examen DELF'} - audio ${sectionOrder}`,
+      });
+      const sections = JSON.parse(this.mockSectionsJson) as DelfMockSection[];
+      this.mockSectionsJson = JSON.stringify(
+        sections.map((section) => section.sectionOrder === sectionOrder
+          ? { ...section, audioUrl: asset.url }
+          : section),
+        null,
+        2,
+      );
+      this.previewMockFromForm();
+    } catch (e: unknown) {
+      this.mockError = this.extractError(e, 'Erreur de téléversement audio.');
+    } finally {
+      this.uploadingMockAudioOrder = null;
+      input.value = '';
+    }
+  }
+
+  resolvedUrl(url?: string | null): string {
+    return this.assets.resolveUrl(url);
+  }
+
+  private mockPayload(): {
+    track: 'Prime' | 'Junior';
+    level: string;
+    title: string;
+    description: string | null;
+    status: 'draft' | 'published' | 'archived';
+    sourceNotes: string | null;
+    sections: DelfMockSection[];
+    assets: Array<{ assetType: string; title: string; url: string; metadata: Record<string, unknown> }>;
+  } {
+    const sections = JSON.parse(this.mockSectionsJson) as DelfMockSection[];
+    const assets = JSON.parse(this.mockAssetsJson) as Array<{
+      assetType: string;
+      title: string;
+      url: string;
+      metadata: Record<string, unknown>;
+    }>;
+    return {
+      track: this.mockTrack,
+      level: this.mockLevel,
+      title: this.mockTitle.trim(),
+      description: this.mockDescription.trim() || null,
+      status: this.mockStatus,
+      sourceNotes: this.mockSourceNotes.trim() || null,
+      sections,
+      assets,
+    };
+  }
+
+  private defaultMockSections(): DelfMockSection[] {
+    return [
+      this.defaultMockSection(1, 'listening', 'Compréhension de l’oral', 15, [8, 8, 9]),
+      this.defaultMockSection(2, 'reading', 'Compréhension des écrits', 15, [8, 7, 10]),
+      this.defaultMockSection(3, 'writing', 'Production écrite', 15, [7, 8, 10]),
+      this.defaultMockSection(4, 'speaking', 'Production orale', 15, [8, 8, 9]),
+    ];
+  }
+
+  private defaultMockSection(
+    sectionOrder: number,
+    sectionType: DelfMockSection['sectionType'],
+    title: string,
+    durationMinutes: number,
+    itemPoints: number[],
+  ): DelfMockSection {
+    return {
+      sectionOrder,
+      sectionType,
+      title,
+      durationMinutes,
+      points: 25,
+      instructions: `${title}: consignes originales à relire par un professeur.`,
+      audioUrl: null,
+      rubric: { total: 25 },
+      metadata: { source: 'admin_default' },
+      items: itemPoints.map((points, index) => ({
+        itemOrder: index + 1,
+        title: `Exercice ${index + 1}`,
+        prompt: 'Remplacer cette consigne par une tâche DELF originale.',
+        points,
+        content: {},
+        answerKey: {},
+        rubric: { points },
+        metadata: {},
+      })),
+    };
+  }
+
+  private classLevelForMock(): string {
+    if (this.mockTrack === 'Prime') {
+      return this.mockLevel === 'A1.1' ? '2ème année' : this.mockLevel === 'A1' ? '3ème année' : '5ème année';
+    }
+    return this.mockLevel === 'A1' ? '7ème année' : this.mockLevel === 'A2' ? '8ème année' : '9ème année';
   }
 
   startNewTemplate(): void {

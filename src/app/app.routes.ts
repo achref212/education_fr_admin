@@ -123,6 +123,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'assets',
+        canActivate: [adminRoleGuard],
+        loadComponent: () =>
+          import('./pages/assets/assets.component').then(
+            (m) => m.AssetsComponent,
+          ),
+      },
+      {
         path: 'profile',
         loadComponent: () =>
           import('./pages/profile/profile.component').then(

@@ -1,0 +1,130 @@
+<div class="page-header">
+  <div class="ph-text">
+    <h1 class="ph-title">
+      <mat-icon class="ph-icon" style="color:#06b6d4">perm_media</mat-icon>
+      Assets
+    </h1>
+    <p class="ph-sub">Gérez les URLs et fichiers utilisés par le dashboard et l’application.</p>
+  </div>
+</div>
+
+<div class="asset-toolbar">
+  <select [(ngModel)]="typeFilter" (change)="load()">
+    @for (type of assetTypes; track type.value) {
+      <option [value]="type.value">{{ type.label }}</option>
+    }
+  </select>
+  <select [(ngModel)]="ownerTypeFilter" (change)="load()">
+    <option value="">Tous les propriétaires</option>
+    <option value="user">Utilisateurs</option>
+    <option value="school">Écoles</option>
+    <option value="story">Histoires</option>
+    <option value="delf_mock_exam">Examens DELF</option>
+    <option value="delf_mock_section">Sections DELF</option>
+    <option value="delf_mock_item">Exercices DELF</option>
+  </select>
+</div>
+
+<div class="asset-grid">
+  <section class="asset-panel">
+    <h2><mat-icon>upload_file</mat-icon> Téléverser</h2>
+    <div class="form-grid">
+      <label>Type
+        <select [(ngModel)]="uploadAssetType">
+          @for (type of assetTypes.slice(1); track type.value) {
+            <option [value]="type.value">{{ type.label }}</option>
+          }
+        </select>
+      </label>
+      <label>Titre
+        <input [(ngModel)]="uploadTitle" placeholder="Nom affiché" />
+      </label>
+    </div>
+    <label class="file-drop">
+      <input type="file" (change)="onFileSelected($event)" />
+      <mat-icon>attach_file</mat-icon>
+      <span>{{ selectedFile?.name || 'Choisir un fichier' }}</span>
+    </label>
+    <button class="btn-save" type="button" [disabled]="!selectedFile || saving()" (click)="upload()">
+      @if (saving()) { <mat-spinner diameter="18" /> } @else { <mat-icon>cloud_upload</mat-icon> }
+      Téléverser
+    </button>
+  </section>
+
+  <section class="asset-panel">
+    <h2><mat-icon>link</mat-icon> Enregistrer une URL</h2>
+    <div class="form-grid">
+      <label>Type
+        <select [(ngModel)]="urlAssetType">
+          @for (type of assetTypes.slice(1); track type.value) {
+            <option [value]="type.value">{{ type.label }}</option>
+          }
+        </select>
+      </label>
+      <label>Titre
+        <input [(ngModel)]="urlTitle" placeholder="Nom affiché" />
+      </label>
+    </div>
+    <label>URL
+      <input [(ngModel)]="urlValue" placeholder="https://..." />
+    </label>
+    <button class="btn-save secondary" type="button" [disabled]="!urlValue.trim() || saving()" (click)="registerUrl()">
+      <mat-icon>add_link</mat-icon>
+      Enregistrer
+    </button>
+  </section>
+</div>
+
+@if (error()) {
+  <div class="inline-error"><mat-icon>error_outline</mat-icon>{{ error() }}</div>
+}
+@if (success()) {
+  <div class="inline-success"><mat-icon>check_circle</mat-icon>{{ success() }}</div>
+}
+
+<div class="table-wrap">
+  @if (loading()) {
+    <div class="table-loading"><mat-spinner diameter="28" /><span>Chargement…</span></div>
+  } @else if (assets().length === 0) {
+    <div class="empty-state"><mat-icon>perm_media</mat-icon><p>Aucune ressource</p></div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Aperçu</th>
+          <th>Titre</th>
+          <th>Type</th>
+          <th>Propriétaire</th>
+          <th>URL</th>
+          <th>Créé le</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (asset of assets(); track asset.id) {
+          <tr>
+            <td>
+              @if (isImage(asset)) {
+                <img class="asset-thumb" [src]="resolvedUrl(asset)" alt="" />
+              } @else if (isAudio(asset)) {
+                <audio class="asset-audio" controls [src]="resolvedUrl(asset)"></audio>
+              } @else {
+                <mat-icon>description</mat-icon>
+              }
+            </td>
+            <td>{{ asset.title || 'Sans titre' }}</td>
+            <td><span class="badge badge-read">{{ typeLabel(asset.assetType) }}</span></td>
+            <td class="cell-muted">{{ asset.ownerType || '—' }} @if (asset.ownerId) { · {{ asset.ownerId | slice:0:8 }}… }</td>
+            <td><a [href]="resolvedUrl(asset)" target="_blank" rel="noreferrer">{{ asset.url }}</a></td>
+            <td class="cell-muted">{{ asset.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <button class="action-btn del" type="button" (click)="archive(asset)" title="Archiver">
+                <mat-icon>archive</mat-icon>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

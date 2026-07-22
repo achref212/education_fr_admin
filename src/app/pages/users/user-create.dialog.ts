@@ -98,6 +98,12 @@ import { PhoneInputComponent } from '../../shared/phone-input/phone-input.compon
 
           <!-- extra fields: date of birth + phone (admin creating a user) -->
           @if (!isSchool) {
+            <mat-form-field appearance="outline" class="fd-full">
+              <mat-label>URL photo profil</mat-label>
+              <mat-icon matPrefix>image</mat-icon>
+              <input matInput formControlName="profilePictureUrl" />
+            </mat-form-field>
+
             <mat-form-field appearance="outline" class="fd-full" (click)="dobPicker.open()">
               <mat-label>Date de naissance</mat-label>
               <mat-icon matPrefix>cake</mat-icon>
@@ -215,6 +221,7 @@ export class UserCreateDialogComponent implements OnInit {
     role: this.fb.nonNullable.control('user', Validators.required),
     dateOfBirth: this.fb.control<Date | null>(null),
     phone: this.fb.nonNullable.control(''),
+    profilePictureUrl: this.fb.nonNullable.control(''),
   });
 
   constructor(
@@ -258,6 +265,7 @@ export class UserCreateDialogComponent implements OnInit {
           role:        v.role,
           phone:       v.phone || null,
           dateOfBirth: dateOfBirth,
+          profilePictureUrl: v.profilePictureUrl || null,
         });
       }
       this.dialogRef.close(true);

@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { SchoolOut, UserOut } from '../../core/models/user.model';
+import { AssetService } from '../../core/services/asset.service';
 import { PhoneInputComponent } from '../../shared/phone-input/phone-input.component';
 
 @Component({
@@ -34,9 +35,11 @@ import { PhoneInputComponent } from '../../shared/phone-input/phone-input.compon
 export class ProfileComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AdminAuthService);
+  private readonly assets = inject(AssetService);
 
   readonly loading = signal(true);
   readonly savingProfile = signal(false);
+  readonly uploadingImage = signal(false);
   readonly savingPassword = signal(false);
   readonly profileError = signal('');
   readonly passwordError = signal('');
@@ -60,6 +63,8 @@ export class ProfileComponent implements OnInit {
     city: [''],
     postalCode: [''],
     directorName: [''],
+    profilePictureUrl: [''],
+    logoUrl: [''],
   });
 
   readonly passwordForm = this.fb.nonNullable.group({
@@ -98,6 +103,7 @@ export class ProfileComponent implements OnInit {
           postalCode: school.postalCode ?? '',
           phone: school.phone ?? '',
           directorName: school.directorName ?? '',
+          logoUrl: school.logoUrl ?? '',
         });
       } else {
         const user = data as UserOut;
@@ -107,6 +113,7 @@ export class ProfileComponent implements OnInit {
           lastName: user.lastName ?? '',
           phone: (user as UserOut & { phone?: string }).phone ?? '',
           dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth) : null,
+          profilePictureUrl: user.profilePictureUrl ?? '',
         });
       }
     } catch (e: unknown) {
@@ -130,6 +137,7 @@ export class ProfileComponent implements OnInit {
           postalCode: v.postalCode || null,
           phone: v.phone || null,
           directorName: v.directorName || null,
+          logoUrl: v.logoUrl || null,
         });
       } else {
         const dateOfBirth = v.dateOfBirth instanceof Date
@@ -140,6 +148,7 @@ export class ProfileComponent implements OnInit {
           lastName: v.lastName || undefined,
           phone: v.phone || null,
           dateOfBirth,
+          profilePictureUrl: v.profilePictureUrl || null,
         });
       }
       this.profileSuccess.set('Profil mis à jour avec succès.');
@@ -149,6 +158,34 @@ export class ProfileComponent implements OnInit {
     } finally {
       this.savingProfile.set(false);
     }
+  }
+
+  async uploadProfileImage(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.uploadingImage.set(true);
+    this.profileError.set('');
+    this.profileSuccess.set('');
+    try {
+      const asset = await this.assets.uploadCurrentProfile(file);
+      const field = this.isSchool ? 'logoUrl' : 'profilePictureUrl';
+      this.profileForm.patchValue({ [field]: asset.url });
+      await this.saveProfile();
+      this.profileSuccess.set('Image mise à jour avec succès.');
+    } catch (e: unknown) {
+      this.profileError.set(e instanceof Error ? e.message : 'Erreur de téléversement');
+    } finally {
+      this.uploadingImage.set(false);
+      input.value = '';
+    }
+  }
+
+  currentImageUrl(): string {
+    const raw = this.isSchool
+      ? this.profileForm.get('logoUrl')?.value
+      : this.profileForm.get('profilePictureUrl')?.value;
+    return this.assets.resolveUrl(raw);
   }
 
   async savePassword(): Promise<void> {

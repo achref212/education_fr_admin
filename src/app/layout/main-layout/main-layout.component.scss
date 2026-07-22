@@ -116,9 +116,11 @@
   background: var(--role-accent);
   border-radius: 13px;
   box-shadow: 0 8px 18px color-mix(in srgb, var(--role-accent) 24%, transparent);
+  overflow: hidden;
   place-items: center;
 
   mat-icon { width: 21px; height: 21px; font-size: 21px; }
+  img { width: 100%; height: 100%; object-fit: cover; }
 }
 
 .user-info { flex: 1; min-width: 0; }
@@ -266,6 +268,7 @@
   place-items: center;
 
   &:hover { transform: translateY(-2px); }
+  img { width: 100%; height: 100%; border-radius: 10px; object-fit: cover; }
 }
 .profile-status { position: absolute; right: -2px; bottom: -2px; width: 10px; height: 10px; background: var(--clr-success); border: 2px solid var(--clr-surface); border-radius: 50%; }
 

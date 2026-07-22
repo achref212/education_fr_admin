@@ -118,6 +118,12 @@ interface SchoolCreateOut {
             </div>
 
             <mat-form-field appearance="outline" class="fd-full">
+              <mat-label>URL du logo</mat-label>
+              <mat-icon matPrefix>image</mat-icon>
+              <input matInput formControlName="logoUrl" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="fd-full">
               <mat-label>Nom du directeur / de la directrice</mat-label>
               <mat-icon matPrefix>person</mat-icon>
               <input matInput formControlName="directorName" placeholder="Marie Dupont" />
@@ -249,6 +255,7 @@ export class SchoolCreateDialogComponent {
     postalCode:   [''],
     phone:        [''],
     directorName: [''],
+    logoUrl:      [''],
   });
 
   constructor(readonly dialogRef: MatDialogRef<SchoolCreateDialogComponent, boolean>) {}
@@ -267,6 +274,7 @@ export class SchoolCreateDialogComponent {
         postalCode:   v.postalCode || null,
         phone:        v.phone || null,
         directorName: v.directorName || null,
+        logoUrl:      v.logoUrl || null,
       });
     } catch (e: any) {
       const detail = e?.error?.detail || e?.message || '';

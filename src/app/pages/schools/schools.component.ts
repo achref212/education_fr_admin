@@ -77,6 +77,10 @@ export class SchoolsComponent implements OnInit {
     return s.name.charAt(0).toUpperCase();
   }
 
+  imageUrl(url?: string | null): string {
+    return this.api.resolveUrl(url);
+  }
+
   openCreate(): void {
     this.dialog.open(SchoolCreateDialogComponent, { panelClass: 'form-dialog-panel', width: '520px' })
       .afterClosed().subscribe(ok => { if (ok) void this.reload(); });

@@ -97,6 +97,12 @@ interface DialogData { school: SchoolOut; }
           </div>
 
           <mat-form-field appearance="outline" class="fd-full">
+            <mat-label>URL du logo</mat-label>
+            <mat-icon matPrefix>image</mat-icon>
+            <input matInput formControlName="logoUrl" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="fd-full">
             <mat-label>Nom du directeur / de la directrice</mat-label>
             <mat-icon matPrefix>person</mat-icon>
             <input matInput formControlName="directorName" />
@@ -199,6 +205,7 @@ export class SchoolDetailDialogComponent {
       postalCode:   [data.school.postalCode ?? ''],
       phone:        [data.school.phone ?? ''],
       directorName: [data.school.directorName ?? ''],
+      logoUrl:      [data.school.logoUrl ?? ''],
       isActive:     [data.school.isActive],
     });
   }
@@ -218,6 +225,7 @@ export class SchoolDetailDialogComponent {
         postalCode:   v.postalCode || null,
         phone:        v.phone || null,
         directorName: v.directorName || null,
+        logoUrl:      v.logoUrl || null,
         isActive:     v.isActive,
       });
       this.success = true;

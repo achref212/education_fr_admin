@@ -51,6 +51,46 @@ export interface AIDelfTestDraft {
   questionsByCategory: Record<string, AIQuizQuestionDraft[]>;
 }
 
+export interface AIDelfMockItemDraft {
+  itemOrder: number;
+  title: string;
+  prompt: string;
+  points: number;
+  content: Record<string, unknown>;
+  answerKey: Record<string, unknown>;
+  rubric: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+}
+
+export interface AIDelfMockSectionDraft {
+  sectionOrder: number;
+  sectionType: 'listening' | 'reading' | 'writing' | 'speaking';
+  title: string;
+  durationMinutes: number;
+  points: number;
+  instructions: string;
+  audioUrl?: string | null;
+  rubric: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  items: AIDelfMockItemDraft[];
+}
+
+export interface AIDelfMockExamDraft {
+  track: 'Prime' | 'Junior';
+  level: string;
+  title: string;
+  description: string | null;
+  status: 'draft' | 'published' | 'archived';
+  sourceNotes: string | null;
+  sections: AIDelfMockSectionDraft[];
+  assets: Array<{
+    assetType: string;
+    title: string;
+    url: string;
+    metadata: Record<string, unknown>;
+  }>;
+}
+
 export interface AIQuizQuestionsOut {
   provider: AIProviderInfo;
   questions: AIQuizQuestionDraft[];
@@ -69,4 +109,9 @@ export interface AILearningPathOut {
 export interface AIDelfTestOut {
   provider: AIProviderInfo;
   test: AIDelfTestDraft;
+}
+
+export interface AIDelfMockExamOut {
+  provider: AIProviderInfo;
+  exam: AIDelfMockExamDraft;
 }

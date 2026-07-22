@@ -26,4 +26,12 @@ export class ApiService {
       this.http.delete(`${this.base}${path}`, { observe: 'response' }),
     ).then(() => undefined);
   }
+
+  resolveUrl(url?: string | null): string {
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) {
+      return url;
+    }
+    return `${this.base.replace(/\/$/, '')}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
 }
