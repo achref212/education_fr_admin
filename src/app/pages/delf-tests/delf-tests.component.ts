@@ -30,6 +30,7 @@ import {
 } from '../../core/constants/delf-targets';
 import { SortableTableDirective } from '../../shared/sortable-table.directive';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { AudioRecorderPickerComponent } from '../../shared/audio-recorder-picker/audio-recorder-picker.component';
 import { QuizFormDialogComponent } from '../quiz-questions/quiz-form.dialog';
 import { DelfTestDetailDialogComponent } from './delf-test-detail.dialog';
 
@@ -48,6 +49,7 @@ const DEFAULT_THRESHOLDS: DelfLevelThreshold[] = DELF_DEFAULT_THRESHOLDS.map((t)
     MatIconModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    AudioRecorderPickerComponent,
   ],
   templateUrl: './delf-tests.component.html',
   styleUrl: './delf-tests.component.scss',
@@ -119,7 +121,7 @@ export class DelfTestsComponent implements OnInit {
   mockStatusFilter = '';
   mockSaving = false;
   mockGenerating = false;
-  uploadingMockAudioOrder: number | null = null;
+  mockAudioBusyOrder: number | null = null;
   mockError = '';
   mockSuccess = '';
   mockPreview: DelfMockExamOut | null = null;
@@ -393,35 +395,24 @@ export class DelfTestsComponent implements OnInit {
     }
   }
 
-  async uploadMockSectionAudio(event: Event, sectionOrder: number): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    this.uploadingMockAudioOrder = sectionOrder;
-    this.mockError = '';
-    try {
-      const asset = await this.assets.upload({
-        file,
-        assetType: 'audio',
-        ownerType: this.mockExamId ? 'delf_mock_exam' : null,
-        ownerId: this.mockExamId,
-        title: `${this.mockTitle || 'Examen DELF'} - audio ${sectionOrder}`,
-      });
-      const sections = JSON.parse(this.mockSectionsJson) as DelfMockSection[];
-      this.mockSectionsJson = JSON.stringify(
-        sections.map((section) => section.sectionOrder === sectionOrder
-          ? { ...section, audioUrl: asset.url }
-          : section),
-        null,
-        2,
-      );
-      this.previewMockFromForm();
-    } catch (e: unknown) {
-      this.mockError = this.extractError(e, 'Erreur de téléversement audio.');
-    } finally {
-      this.uploadingMockAudioOrder = null;
-      input.value = '';
-    }
+  setMockSectionAudioUrl(sectionOrder: number, audioUrl: string): void {
+    const sections = JSON.parse(this.mockSectionsJson) as DelfMockSection[];
+    this.mockSectionsJson = JSON.stringify(
+      sections.map((section) => section.sectionOrder === sectionOrder
+        ? { ...section, audioUrl }
+        : section),
+      null,
+      2,
+    );
+    this.previewMockFromForm();
+  }
+
+  setMockAudioBusy(sectionOrder: number, busy: boolean): void {
+    this.mockAudioBusyOrder = busy ? sectionOrder : this.mockAudioBusyOrder === sectionOrder ? null : this.mockAudioBusyOrder;
+  }
+
+  onMockAudioError(message: string): void {
+    if (message) this.mockError = message;
   }
 
   resolvedUrl(url?: string | null): string {

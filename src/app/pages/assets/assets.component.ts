@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { MediaAssetOut } from '../../core/models/media-asset.model';
 import { AssetService } from '../../core/services/asset.service';
+import { AudioRecorderPickerComponent } from '../../shared/audio-recorder-picker/audio-recorder-picker.component';
 
 const ASSET_TYPES = [
   { value: '', label: 'Tous les types' },
@@ -20,7 +21,15 @@ const ASSET_TYPES = [
 @Component({
   selector: 'app-assets',
   standalone: true,
-  imports: [DatePipe, SlicePipe, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    DatePipe,
+    SlicePipe,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    AudioRecorderPickerComponent,
+  ],
   templateUrl: './assets.component.html',
   styleUrl: './assets.component.scss',
 })
@@ -42,6 +51,7 @@ export class AssetsComponent implements OnInit {
   uploadAssetType = 'image';
   uploadTitle = '';
   selectedFile: File | null = null;
+  audioRecorderBusy = false;
 
   async ngOnInit(): Promise<void> {
     await this.load();
@@ -87,6 +97,13 @@ export class AssetsComponent implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  async onAudioAssetUploaded(): Promise<void> {
+    this.success.set('Audio enregistré.');
+    this.selectedFile = null;
+    this.uploadTitle = '';
+    await this.load();
   }
 
   async registerUrl(): Promise<void> {

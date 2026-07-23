@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { QuizQuestionOut } from '../../core/models/quiz.model';
 import { ApiService } from '../../core/http/api.service';
+import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { SortableTableDirective } from '../../shared/sortable-table.directive';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { QuizFormDialogComponent } from './quiz-form.dialog';
@@ -27,6 +28,7 @@ const CAT_BADGE: Record<string, string> = {
 })
 export class QuizQuestionsComponent implements OnInit {
   private readonly api    = inject(ApiService);
+  private readonly auth   = inject(AdminAuthService);
   private readonly dialog = inject(MatDialog);
 
   readonly loading   = signal(true);
@@ -45,7 +47,8 @@ export class QuizQuestionsComponent implements OnInit {
   async reload(): Promise<void> {
     this.loading.set(true);
     try {
-      const list = await this.api.get<QuizQuestionOut[]>('/admin/quiz-questions');
+      const endpoint = this.auth.isProf() ? '/prof/quiz-questions' : '/admin/quiz-questions';
+      const list = await this.api.get<QuizQuestionOut[]>(endpoint);
       this.questions.set(list);
       this.applyFilter();
     } finally { this.loading.set(false); }
@@ -101,7 +104,8 @@ export class QuizQuestionsComponent implements OnInit {
       this.dialog.open(ConfirmDialogComponent, { data, width: '380px' }).afterClosed()
     );
     if (!ok) return;
-    await this.api.delete(`/admin/quiz-questions/${row.id}`);
+    const base = this.auth.isProf() ? '/prof/quiz-questions' : '/admin/quiz-questions';
+    await this.api.delete(`${base}/${row.id}`);
     await this.reload();
   }
 }

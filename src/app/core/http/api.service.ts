@@ -17,6 +17,16 @@ export class ApiService {
     return firstValueFrom(this.http.post<T>(`${this.base}${path}`, body));
   }
 
+  postForm<T>(path: string, form: FormData): Promise<T> {
+    return firstValueFrom(this.http.post<T>(`${this.base}${path}`, form));
+  }
+
+  download(path: string): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`${this.base}${path}`, { responseType: 'blob' }),
+    );
+  }
+
   put<T>(path: string, body: unknown): Promise<T> {
     return firstValueFrom(this.http.put<T>(`${this.base}${path}`, body));
   }

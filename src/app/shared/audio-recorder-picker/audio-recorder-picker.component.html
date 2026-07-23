@@ -1,0 +1,93 @@
+<div class="audio-picker" [ngClass]="{ compact: compact, recording: recording }">
+  <div class="audio-main">
+    <div class="audio-status">
+      <div class="mic-indicator">
+        <mat-icon>{{ recording ? 'mic' : 'graphic_eq' }}</mat-icon>
+      </div>
+      <div class="audio-meta">
+        <span class="audio-title">
+          @if (recording) {
+            Enregistrement en cours
+          } @else if (recordedPreviewUrl) {
+            Enregistrement prêt
+          } @else if (audioUrl) {
+            Audio disponible
+          } @else {
+            Ajouter un audio
+          }
+        </span>
+        <span class="audio-sub">
+          @if (recording || elapsedSeconds > 0) {
+            {{ formattedElapsed() }}
+          } @else {
+            Importer un fichier ou enregistrer au micro
+          }
+        </span>
+      </div>
+    </div>
+
+    <div class="waveform" aria-hidden="true">
+      @for (bar of bars; track $index) {
+        <span [style.height.px]="bar"></span>
+      }
+    </div>
+  </div>
+
+  @if (hasAudio()) {
+    <audio class="audio-preview" controls [src]="previewUrl()"></audio>
+  }
+
+  <div class="audio-actions">
+    <label class="audio-btn file-btn" [class.disabled]="disabled || uploading || recording">
+      <input
+        #fileInput
+        type="file"
+        accept="audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/wav,audio/x-wav,audio/ogg,audio/webm"
+        [disabled]="disabled || uploading || recording"
+        (change)="onFileSelected($event)"
+      />
+      @if (uploading) { <mat-spinner diameter="16" /> } @else { <mat-icon>upload_file</mat-icon> }
+      <span>Importer</span>
+    </label>
+
+    @if (!recording && !recordedPreviewUrl) {
+      <button class="audio-btn primary" type="button" [disabled]="disabled || uploading" (click)="startRecording()">
+        <mat-icon>mic</mat-icon>
+        <span>Enregistrer</span>
+      </button>
+    }
+
+    @if (recording) {
+      <button class="audio-btn danger" type="button" (click)="stopRecording()">
+        <mat-icon>stop</mat-icon>
+        <span>Stop</span>
+      </button>
+      <button class="audio-btn ghost" type="button" (click)="cancelRecording()">
+        <mat-icon>close</mat-icon>
+        <span>Annuler</span>
+      </button>
+    }
+
+    @if (recordedPreviewUrl && !recording) {
+      <button class="audio-btn primary" type="button" [disabled]="disabled || uploading" (click)="saveRecording()">
+        @if (uploading) { <mat-spinner diameter="16" /> } @else { <mat-icon>cloud_upload</mat-icon> }
+        <span>Sauver</span>
+      </button>
+      <button class="audio-btn ghost" type="button" [disabled]="uploading" (click)="cancelRecording()">
+        <mat-icon>delete_outline</mat-icon>
+        <span>Annuler</span>
+      </button>
+      <button class="audio-btn ghost" type="button" [disabled]="disabled || uploading" (click)="startRecording()">
+        <mat-icon>refresh</mat-icon>
+        <span>Refaire</span>
+      </button>
+    }
+  </div>
+
+  @if (error) {
+    <div class="audio-error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ error }}</span>
+    </div>
+  }
+</div>

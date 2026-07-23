@@ -5,4 +5,7 @@ export interface StoryOut {
   level: string;
   audioUrl: string | null;
   createdAt: string;
+  professorId?: string | null;
+  schoolId?: string | null;
+  visibility?: 'public' | 'school' | string;
 }

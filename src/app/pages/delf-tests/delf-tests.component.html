@@ -223,15 +223,17 @@
             @for (section of mockSectionsForAudio(); track section.sectionOrder) {
               <div class="mock-audio-row">
                 <span>{{ section.title || sectionTypeLabel(section.sectionType) }}</span>
-                @if (section.audioUrl) {
-                  <audio controls [src]="resolvedUrl(section.audioUrl)"></audio>
-                }
-                <label class="mock-upload-btn">
-                  <input type="file" accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg" (change)="uploadMockSectionAudio($event, section.sectionOrder)" />
-                  @if (uploadingMockAudioOrder === section.sectionOrder) { <mat-spinner diameter="18" /> }
-                  @else { <mat-icon>upload_file</mat-icon> }
-                  Audio
-                </label>
+                <app-audio-recorder-picker
+                  [audioUrl]="section.audioUrl ?? null"
+                  [title]="(mockTitle || 'Examen DELF') + ' - audio ' + section.sectionOrder"
+                  [ownerType]="mockExamId ? 'delf_mock_exam' : null"
+                  [ownerId]="mockExamId"
+                  [disabled]="mockSaving || mockGenerating"
+                  [compact]="true"
+                  (audioUrlChange)="setMockSectionAudioUrl(section.sectionOrder, $event)"
+                  (busyChange)="setMockAudioBusy(section.sectionOrder, $event)"
+                  (errorChange)="onMockAudioError($event)"
+                />
               </div>
             }
           </div>

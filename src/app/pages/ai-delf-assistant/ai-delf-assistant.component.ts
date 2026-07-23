@@ -13,8 +13,11 @@ import {
   AIDelfTestDraft,
   AIDelfTestOut,
   AIContentGenerateIn,
+  AIGeneratedLessonDraft,
+  AIGeneratedStoryDraft,
   AILearningPathDraft,
   AILearningPathOut,
+  AILearningPathStepDraft,
   AILessonDraft,
   AILessonOut,
   AIProviderInfo,
@@ -67,6 +70,11 @@ export class AiDelfAssistantComponent implements OnInit {
   readonly questions = signal<AIQuizQuestionDraft[]>([]);
   readonly lesson = signal<AILessonDraft | null>(null);
   readonly path = signal<AILearningPathDraft | null>(null);
+  readonly pathLessons = signal<AIGeneratedLessonDraft[]>([]);
+  readonly pathStories = signal<AIGeneratedStoryDraft[]>([]);
+  readonly pathQuestions = signal<AIQuizQuestionDraft[]>([]);
+  readonly pathSteps = signal<AILearningPathStepDraft[]>([]);
+  readonly pathNotes = signal<string | null>(null);
   readonly test = signal<AIDelfTestDraft | null>(null);
 
   selectedTabIndex = 0;
@@ -157,10 +165,15 @@ export class AiDelfAssistantComponent implements OnInit {
   async generatePath(): Promise<void> {
     await this.generate('path', '/admin/ai/generate-learning-path', {
       ...this.basePayload(),
-      count: 1,
+      count: 6,
     }, (res: AILearningPathOut) => {
       this.provider.set(res.provider);
       this.path.set({ ...res.path, saved: false });
+      this.pathLessons.set((res.generatedLessons ?? []).map(item => ({ ...item, saved: false })));
+      this.pathStories.set((res.generatedStories ?? []).map(item => ({ ...item, saved: false })));
+      this.pathQuestions.set(this.prepareQuestions(res.generatedQuestions ?? []));
+      this.pathSteps.set([...(res.steps ?? [])].sort((a, b) => a.stepOrder - b.stepOrder));
+      this.pathNotes.set(res.adaptationNotes ?? null);
     });
   }
 
@@ -201,12 +214,72 @@ export class AiDelfAssistantComponent implements OnInit {
 
   async savePath(): Promise<void> {
     const path = this.path();
+    if (!path) {
+      this.error.set('Générez un parcours avant de le créer.');
+      return;
+    }
     const errors = this.pathErrors(path);
     if (errors.length) {
       this.error.set(errors[0]);
       return;
     }
-    await this.save('path', '/admin/learning-paths', path, () => this.path.set({ ...path!, saved: true }));
+    this.saving.set('path');
+    this.error.set('');
+    this.success.set('');
+    try {
+      const lessonIds: Record<string, string> = {};
+      for (const lesson of this.pathLessons()) {
+        const saved = await this.api.post<{ id: string }>('/admin/lessons', {
+          title: lesson.title,
+          content: lesson.content,
+          category: lesson.category,
+          level: lesson.level,
+          sortOrder: lesson.sortOrder,
+        });
+        lesson.saved = true;
+        lessonIds[lesson.key] = saved.id;
+      }
+
+      const storyIds: Record<string, string> = {};
+      for (const story of this.pathStories()) {
+        const saved = await this.api.post<{ id: string }>('/admin/stories', {
+          title: story.title,
+          content: story.content,
+          level: story.level,
+          audioUrl: story.audioUrl ?? null,
+        });
+        story.saved = true;
+        storyIds[story.key] = saved.id;
+      }
+
+      for (const question of this.pathQuestions()) {
+        await this.api.post('/admin/quiz-questions', this.questionPayloadForSave(question));
+        question.saved = true;
+      }
+
+      const savedPath = await this.api.post<{ id: string }>('/admin/learning-paths', path);
+      for (const step of this.pathSteps()) {
+        await this.api.post(`/admin/learning-paths/${savedPath.id}/steps`, {
+          stepOrder: step.stepOrder,
+          stepType: step.stepType,
+          title: step.title,
+          xpReward: step.xpReward,
+          quizCategory: step.stepType === 'quiz' ? step.quizCategory ?? null : null,
+          lessonId: step.stepType === 'lesson' ? lessonIds[step.generatedLessonKey ?? ''] ?? null : null,
+          storyId: step.stepType === 'story' ? storyIds[step.generatedStoryKey ?? ''] ?? null : null,
+          requiredStepId: null,
+        });
+      }
+      this.path.set({ ...path, saved: true });
+      this.pathLessons.set([...this.pathLessons()]);
+      this.pathStories.set([...this.pathStories()]);
+      this.pathQuestions.set([...this.pathQuestions()]);
+      this.success.set('Parcours IA créé avec ses contenus et ses étapes.');
+    } catch {
+      this.error.set('Impossible de créer le parcours IA complet.');
+    } finally {
+      this.saving.set(null);
+    }
   }
 
   async saveTestQuestions(): Promise<void> {
@@ -306,6 +379,43 @@ export class AiDelfAssistantComponent implements OnInit {
     if (path.minScore !== null && path.maxScore !== null && path.minScore > path.maxScore) {
       errors.push('Le score minimum doit être inférieur au score maximum.');
     }
+    const steps = this.pathSteps();
+    if (steps.length < 5 || steps.length > 8) errors.push('Le parcours doit contenir entre 5 et 8 étapes.');
+    steps.forEach((step, index) => {
+      if (step.stepOrder !== index + 1) errors.push('Les étapes doivent être ordonnées de 1 à N.');
+      if (!['lesson', 'quiz', 'story'].includes(step.stepType)) errors.push(`Étape ${index + 1}: type invalide.`);
+      if (!step.title.trim()) errors.push(`Étape ${index + 1}: titre manquant.`);
+      if (step.stepType === 'quiz' && !QUIZ_CATEGORIES.includes(step.quizCategory ?? '')) {
+        errors.push(`Étape ${index + 1}: catégorie quiz invalide.`);
+      }
+      if (
+        step.stepType === 'lesson'
+        && !this.pathLessons().some(lesson => lesson.key === step.generatedLessonKey)
+      ) {
+        errors.push(`Étape ${index + 1}: leçon générée introuvable.`);
+      }
+      if (
+        step.stepType === 'story'
+        && !this.pathStories().some(story => story.key === step.generatedStoryKey)
+      ) {
+        errors.push(`Étape ${index + 1}: histoire générée introuvable.`);
+      }
+    });
+    this.pathLessons().forEach((lesson, index) => {
+      for (const error of this.lessonErrors(lesson)) {
+        errors.push(`Leçon générée ${index + 1}: ${error}`);
+      }
+    });
+    this.pathQuestions().forEach((question, index) => {
+      for (const error of this.questionErrors(question)) {
+        errors.push(`Question générée ${index + 1}: ${error}`);
+      }
+    });
+    this.pathStories().forEach((story, index) => {
+      if (!story.title.trim()) errors.push(`Histoire générée ${index + 1}: titre vide.`);
+      if (!story.content.trim()) errors.push(`Histoire générée ${index + 1}: contenu vide.`);
+      if (!LEVELS.includes(story.level)) errors.push(`Histoire générée ${index + 1}: niveau invalide.`);
+    });
     return errors;
   }
 

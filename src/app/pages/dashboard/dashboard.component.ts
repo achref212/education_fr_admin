@@ -234,12 +234,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private readonly schoolModules: ModuleCard[] = [
     { label: 'Élèves', description: 'Consulter les classes, profils et parcours DELF.', icon: 'groups', route: '/students', accent: '#12b886', count: () => this.students().length },
-    { label: 'Professeurs', description: 'Créer et gérer votre équipe pédagogique.', icon: 'co_present', route: '/professors', accent: '#6d5dfc', count: () => this.professors().length },
+    { label: 'Professeurs', description: 'Créer, importer et gérer votre équipe pédagogique.', icon: 'co_present', route: '/professors', accent: '#6d5dfc', count: () => this.professors().length },
   ];
 
   private readonly profModules: ModuleCard[] = [
     { label: 'Mes élèves', description: 'Suivre chaque élève et son parcours détaillé.', icon: 'groups', route: '/users', accent: '#6d5dfc', count: () => this.students().length },
     { label: 'Leçons', description: 'Préparer des leçons adaptées à vos classes.', icon: 'menu_book', route: '/lessons', accent: '#16a67a', count: () => 0 },
+    { label: 'Quiz', description: 'Créer des questions pour réviser et évaluer.', icon: 'quiz', route: '/quiz-questions', accent: '#f59e0b', count: () => 0 },
+    { label: 'Histoires', description: 'Publier des lectures avec audio si besoin.', icon: 'auto_stories', route: '/stories', accent: '#ec4899', count: () => 0 },
     { label: 'Multijoueur', description: 'Lancer des défis et quiz collectifs.', icon: 'sports_esports', route: '/multiplayer', accent: '#9b5de5', count: () => 0 },
   ];
 
@@ -253,12 +255,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private readonly schoolActions: QuickAction[] = [
     { label: 'Voir les élèves', description: 'Classes et progression', icon: 'groups', route: '/students', accent: '#12b886' },
-    { label: 'Ajouter un professeur', description: 'Développer votre équipe', icon: 'person_add', route: '/professors', accent: '#6d5dfc' },
+    { label: 'Ajouter ou importer', description: 'Développer votre équipe', icon: 'group_add', route: '/professors', accent: '#6d5dfc' },
   ];
 
   private readonly profActions: QuickAction[] = [
     { label: 'Voir mes élèves', description: 'Profils et parcours', icon: 'groups', route: '/users', accent: '#6d5dfc' },
     { label: 'Créer une leçon', description: 'Préparer un contenu', icon: 'note_add', route: '/lessons', accent: '#16a67a' },
+    { label: 'Créer un quiz', description: 'Ajouter une question', icon: 'quiz', route: '/quiz-questions', accent: '#f59e0b' },
     { label: 'Lancer une partie', description: 'Défi multijoueur', icon: 'sports_esports', route: '/multiplayer', accent: '#9b5de5' },
   ];
 

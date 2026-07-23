@@ -6,4 +6,7 @@ export interface LessonOut {
   level: string;
   sortOrder: number;
   createdAt: string;
+  professorId?: string | null;
+  schoolId?: string | null;
+  visibility?: 'public' | 'school' | string;
 }

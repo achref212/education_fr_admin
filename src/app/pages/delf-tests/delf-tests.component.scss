@@ -441,9 +441,9 @@ label {
 
 .mock-audio-row {
   display: grid;
-  grid-template-columns: minmax(130px, 1fr) minmax(180px, 280px) auto;
-  gap: 10px;
-  align-items: center;
+  grid-template-columns: minmax(140px, 220px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
 
   span {
     color: var(--clr-text);
@@ -451,27 +451,8 @@ label {
     font-weight: 700;
   }
 
-  audio {
-    width: 100%;
-  }
-}
-
-.mock-upload-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 92px;
-  height: 38px;
-  border: 1px dashed rgba(255,255,255,.18);
-  border-radius: 8px;
-  color: var(--clr-text);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-
-  input {
-    display: none;
+  app-audio-recorder-picker {
+    min-width: 0;
   }
 }
 

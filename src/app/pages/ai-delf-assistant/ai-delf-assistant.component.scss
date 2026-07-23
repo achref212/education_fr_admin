@@ -560,6 +560,108 @@ li.correct {
   justify-content: space-between;
 }
 
+.adaptation-note,
+.path-summary,
+.path-step-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adaptation-note {
+  padding: 12px 14px;
+  color: var(--ai-ready-text);
+  background: var(--ai-ready-bg);
+  border: 1px solid var(--ai-ready-border);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.path-summary {
+  flex-wrap: wrap;
+}
+
+.path-summary span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+  color: var(--clr-text);
+  background: color-mix(in srgb, var(--clr-surface-2) 58%, transparent);
+  border: 1px solid var(--clr-border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.path-summary mat-icon,
+.adaptation-note mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.path-steps-review {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--clr-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--clr-surface-2) 38%, transparent);
+}
+
+.path-steps-review h3 {
+  margin: 0;
+}
+
+.path-step-row {
+  min-height: 54px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--clr-text-muted) 22%, var(--clr-border));
+  border-radius: 12px;
+  background: var(--clr-surface);
+}
+
+.path-step-row .step-order {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: white;
+  background: linear-gradient(135deg, var(--ai-accent), var(--ai-accent-2));
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.path-step-row div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.path-step-row strong,
+.path-step-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.path-step-row small {
+  color: var(--clr-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.path-step-row .xp {
+  color: var(--ai-created-text);
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .mini-question ol {
   margin: 8px 0 0;
   padding-left: 22px;

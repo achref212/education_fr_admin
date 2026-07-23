@@ -91,6 +91,10 @@ select {
   &:disabled { opacity: .55; cursor: not-allowed; }
 }
 
+.asset-recorder {
+  margin-top: 4px;
+}
+
 .asset-thumb {
   width: 52px;
   height: 52px;

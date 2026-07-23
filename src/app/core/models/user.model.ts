@@ -47,6 +47,23 @@ export interface ProfCreateOut {
   dateOfBirth?: string;
 }
 
+export interface ImportRowResultOut {
+  rowNumber: number;
+  status: 'created' | 'skipped' | string;
+  email?: string | null;
+  displayName?: string | null;
+  createdId?: string | null;
+  plainPassword?: string | null;
+  error?: string | null;
+}
+
+export interface ImportResultOut {
+  totalRows: number;
+  createdCount: number;
+  skippedCount: number;
+  results: ImportRowResultOut[];
+}
+
 export interface SchoolStats {
   studentCount: number;
   professorCount: number;

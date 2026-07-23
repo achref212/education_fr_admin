@@ -45,10 +45,20 @@
       <mat-icon>attach_file</mat-icon>
       <span>{{ selectedFile?.name || 'Choisir un fichier' }}</span>
     </label>
-    <button class="btn-save" type="button" [disabled]="!selectedFile || saving()" (click)="upload()">
+    <button class="btn-save" type="button" [disabled]="!selectedFile || saving() || audioRecorderBusy" (click)="upload()">
       @if (saving()) { <mat-spinner diameter="18" /> } @else { <mat-icon>cloud_upload</mat-icon> }
       Téléverser
     </button>
+    @if (uploadAssetType === 'audio') {
+      <div class="asset-recorder">
+        <app-audio-recorder-picker
+          [title]="uploadTitle || 'Audio dashboard'"
+          [disabled]="saving()"
+          (busyChange)="audioRecorderBusy = $event"
+          (assetUploaded)="onAudioAssetUploaded()"
+        />
+      </div>
+    }
   </section>
 
   <section class="asset-panel">

@@ -10,6 +10,7 @@ import { ApiService } from '../../core/http/api.service';
 import { SortableTableDirective } from '../../shared/sortable-table.directive';
 import { DetailDialogComponent, DetailDialogData } from '../../shared/detail-dialog/detail-dialog.component';
 import { ProfessorCreateDialogComponent } from './professor-create.dialog';
+import { AccountImportDialogComponent } from '../../shared/account-import-dialog/account-import-dialog.component';
 
 const AVATAR_COLORS = [
   'linear-gradient(135deg,#6366f1,#8b5cf6)',
@@ -100,5 +101,23 @@ export class SchoolProfessorsComponent implements OnInit {
   openCreate(): void {
     this.dialog.open(ProfessorCreateDialogComponent, { panelClass: 'form-dialog-panel' })
       .afterClosed().subscribe(ok => { if (ok) void this.reload(); });
+  }
+
+  openImport(): void {
+    this.dialog.open(AccountImportDialogComponent, {
+      panelClass: 'form-dialog-panel',
+      width: '820px',
+      data: {
+        title: 'Importer des professeurs',
+        subtitle: 'Créer plusieurs comptes professeurs pour votre établissement',
+        icon: 'group_add',
+        accent: 'linear-gradient(135deg,#6366f1,#a855f7)',
+        uploadEndpoint: '/school/professors/import',
+        templateEndpoint: '/school/professors/import-template',
+        templateFilename: 'modele-professeurs.csv',
+        resultFilename: 'resultats-import-professeurs.csv',
+        requiredColumns: ['Prénom', 'Nom', 'Email', 'Téléphone', 'Date de naissance'],
+      },
+    }).afterClosed().subscribe(ok => { if (ok) void this.reload(); });
   }
 }

@@ -12,6 +12,7 @@ import { SortableTableDirective } from '../../shared/sortable-table.directive';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { SchoolCreateDialogComponent } from './school-create.dialog';
 import { SchoolDetailDialogComponent } from './school-detail.dialog';
+import { AccountImportDialogComponent } from '../../shared/account-import-dialog/account-import-dialog.component';
 
 @Component({
   selector: 'app-schools',
@@ -84,6 +85,24 @@ export class SchoolsComponent implements OnInit {
   openCreate(): void {
     this.dialog.open(SchoolCreateDialogComponent, { panelClass: 'form-dialog-panel', width: '520px' })
       .afterClosed().subscribe(ok => { if (ok) void this.reload(); });
+  }
+
+  openImport(): void {
+    this.dialog.open(AccountImportDialogComponent, {
+      panelClass: 'form-dialog-panel',
+      width: '820px',
+      data: {
+        title: 'Importer des établissements',
+        subtitle: 'Créer plusieurs comptes école depuis un fichier CSV ou XLSX',
+        icon: 'upload_file',
+        accent: 'linear-gradient(135deg,#10b981,#06b6d4)',
+        uploadEndpoint: '/admin/schools/import',
+        templateEndpoint: '/admin/schools/import-template',
+        templateFilename: 'modele-ecoles.csv',
+        resultFilename: 'resultats-import-ecoles.csv',
+        requiredColumns: ['Nom', 'Email', 'Adresse', 'Ville', 'Code postal', 'Téléphone', 'Directeur'],
+      },
+    }).afterClosed().subscribe(ok => { if (ok) void this.reload(); });
   }
 
   openDetail(s: SchoolOut): void {

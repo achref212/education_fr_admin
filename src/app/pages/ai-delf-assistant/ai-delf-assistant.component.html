@@ -270,13 +270,41 @@
               <label>Score max <input type="number" min="0" max="100" [(ngModel)]="draft.maxScore"></label>
               <label class="check"><input type="checkbox" [(ngModel)]="draft.isDefault">Parcours par défaut</label>
             </div>
+            @if (pathNotes()) {
+              <div class="adaptation-note">
+                <mat-icon>psychology</mat-icon>
+                <span>{{ pathNotes() }}</span>
+              </div>
+            }
+            <div class="path-summary">
+              <span><mat-icon>menu_book</mat-icon>{{ pathLessons().length }} leçon(s)</span>
+              <span><mat-icon>auto_stories</mat-icon>{{ pathStories().length }} histoire(s)</span>
+              <span><mat-icon>quiz</mat-icon>{{ pathQuestions().length }} question(s)</span>
+              <span><mat-icon>route</mat-icon>{{ pathSteps().length }} étape(s)</span>
+            </div>
+            @if (pathSteps().length) {
+              <section class="path-steps-review">
+                <h3>Étapes générées</h3>
+                @for (step of pathSteps(); track step.stepOrder) {
+                  <div class="path-step-row">
+                    <span class="step-order">{{ step.stepOrder }}</span>
+                    <mat-icon>{{ step.stepType === 'lesson' ? 'menu_book' : step.stepType === 'story' ? 'auto_stories' : 'quiz' }}</mat-icon>
+                    <div>
+                      <strong>{{ step.title }}</strong>
+                      <small>{{ step.stepType }} · {{ step.quizCategory || step.generatedLessonKey || step.generatedStoryKey }}</small>
+                    </div>
+                    <span class="xp">{{ step.xpReward }} XP</span>
+                  </div>
+                }
+              </section>
+            }
             @if (pathErrors(draft).length) {
               <ul class="validation-list">
                 @for (item of pathErrors(draft); track item) { <li>{{ item }}</li> }
               </ul>
             }
             <button mat-stroked-button color="primary" (click)="savePath()" [disabled]="draft.saved || saving() === 'path' || pathErrors(draft).length > 0">
-              <mat-icon>{{ draft.saved ? 'check' : 'add_circle' }}</mat-icon>{{ draft.saved ? 'Créé' : 'Créer le parcours' }}
+              <mat-icon>{{ draft.saved ? 'check' : 'add_circle' }}</mat-icon>{{ draft.saved ? 'Créé' : 'Créer le parcours complet' }}
             </button>
           </article>
         }

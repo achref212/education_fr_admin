@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { StoryOut } from '../../core/models/story.model';
 import { ApiService } from '../../core/http/api.service';
+import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { SortableTableDirective } from '../../shared/sortable-table.directive';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { StoryFormDialogComponent } from './story-form.dialog';
@@ -22,6 +23,7 @@ import { DetailDialogComponent, DetailDialogData } from '../../shared/detail-dia
 })
 export class StoriesComponent implements OnInit {
   private readonly api    = inject(ApiService);
+  private readonly auth   = inject(AdminAuthService);
   private readonly dialog = inject(MatDialog);
 
   readonly loading  = signal(true);
@@ -40,7 +42,8 @@ export class StoriesComponent implements OnInit {
   async reload(): Promise<void> {
     this.loading.set(true);
     try {
-      const list = await this.api.get<StoryOut[]>('/admin/stories');
+      const endpoint = this.auth.isProf() ? '/prof/stories' : '/admin/stories';
+      const list = await this.api.get<StoryOut[]>(endpoint);
       this.stories.set(list);
       this.applyFilter();
     } finally { this.loading.set(false); }
@@ -92,7 +95,8 @@ export class StoriesComponent implements OnInit {
       this.dialog.open(ConfirmDialogComponent, { data, width: '380px' }).afterClosed()
     );
     if (!ok) return;
-    await this.api.delete(`/admin/stories/${row.id}`);
+    const base = this.auth.isProf() ? '/prof/stories' : '/admin/stories';
+    await this.api.delete(`${base}/${row.id}`);
     await this.reload();
   }
 }

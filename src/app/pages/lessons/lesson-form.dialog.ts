@@ -104,6 +104,17 @@ export type LessonFormData = { lesson?: LessonOut | null };
             <mat-hint>Les leçons sont triées par cet ordre croissant</mat-hint>
           </mat-form-field>
 
+          @if (auth.isProf()) {
+            <mat-form-field appearance="outline" class="fd-full">
+              <mat-label>Visibilité</mat-label>
+              <mat-icon matPrefix>visibility</mat-icon>
+              <mat-select formControlName="visibility">
+                <mat-option value="public">Publié pour tous</mat-option>
+                <mat-option value="school">Privé à mon établissement</mat-option>
+              </mat-select>
+            </mat-form-field>
+          }
+
           @if (error) {
             <div class="fd-error">
               <mat-icon>error_outline</mat-icon>{{ error }}
@@ -130,7 +141,7 @@ export type LessonFormData = { lesson?: LessonOut | null };
 })
 export class LessonFormDialogComponent {
   private readonly api = inject(ApiService);
-  private readonly auth = inject(AdminAuthService);
+  readonly auth = inject(AdminAuthService);
   private readonly fb  = inject(FormBuilder);
 
   readonly levels     = LEVELS;
@@ -144,6 +155,7 @@ export class LessonFormDialogComponent {
     category:  [LESSON_CATEGORIES[0], Validators.required],
     level:     [LEVELS[0], Validators.required],
     sortOrder: [0, Validators.required],
+    visibility: ['public', Validators.required],
   });
 
   constructor(
@@ -156,6 +168,7 @@ export class LessonFormDialogComponent {
       this.form.patchValue({
         title: l.title, content: l.content,
         category: l.category, level: l.level, sortOrder: l.sortOrder,
+        visibility: l.visibility || 'public',
       });
     }
   }
@@ -166,7 +179,14 @@ export class LessonFormDialogComponent {
     this.error  = '';
     try {
       const v = this.form.getRawValue();
-      const body = { title: v.title, content: v.content, category: v.category, level: v.level, sortOrder: v.sortOrder };
+      const body = {
+        title: v.title,
+        content: v.content,
+        category: v.category,
+        level: v.level,
+        sortOrder: v.sortOrder,
+        visibility: v.visibility,
+      };
       const isProf = this.auth.isProf();
       const base = isProf ? '/prof/lessons' : '/admin/lessons';
       if (this.data.lesson) {

@@ -62,7 +62,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
       return this.nav.filter(n => n.schoolOnly || n.path === '/dashboard');
     }
     if (role === 'prof') {
-      return this.nav.filter(n => n.profOnly || n.path === '/dashboard' || (!n.adminOnly && !n.schoolOnly && ['Leçons', 'Multijoueur', 'Élèves'].includes(n.label)));
+      return this.nav.filter(n => n.profOnly || n.path === '/dashboard' || (!n.adminOnly && !n.schoolOnly && ['Leçons', 'Quiz', 'Histoires', 'Multijoueur', 'Élèves'].includes(n.label)));
     }
     return [];
   }

@@ -32,6 +32,19 @@ export interface AILessonDraft {
   saved?: boolean;
 }
 
+export interface AIGeneratedLessonDraft extends AILessonDraft {
+  key: string;
+}
+
+export interface AIGeneratedStoryDraft {
+  key: string;
+  title: string;
+  content: string;
+  level: string;
+  audioUrl: string | null;
+  saved?: boolean;
+}
+
 export interface AILearningPathDraft {
   title: string;
   description: string | null;
@@ -41,6 +54,16 @@ export interface AILearningPathDraft {
   maxScore: number | null;
   isDefault: boolean;
   saved?: boolean;
+}
+
+export interface AILearningPathStepDraft {
+  stepOrder: number;
+  stepType: 'lesson' | 'quiz' | 'story';
+  title: string;
+  xpReward: number;
+  quizCategory?: string | null;
+  generatedLessonKey?: string | null;
+  generatedStoryKey?: string | null;
 }
 
 export interface AIDelfTestDraft {
@@ -104,6 +127,11 @@ export interface AILessonOut {
 export interface AILearningPathOut {
   provider: AIProviderInfo;
   path: AILearningPathDraft;
+  generatedLessons: AIGeneratedLessonDraft[];
+  generatedStories: AIGeneratedStoryDraft[];
+  generatedQuestions: AIQuizQuestionDraft[];
+  steps: AILearningPathStepDraft[];
+  adaptationNotes: string | null;
 }
 
 export interface AIDelfTestOut {

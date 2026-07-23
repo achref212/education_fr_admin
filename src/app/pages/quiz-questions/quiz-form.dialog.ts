@@ -20,6 +20,7 @@ import { FormsModule } from '@angular/forms';
 
 import { QuizQuestionOut } from '../../core/models/quiz.model';
 import { ApiService } from '../../core/http/api.service';
+import { AdminAuthService } from '../../core/auth/admin-auth.service';
 import { LEVELS, QUIZ_CATEGORIES } from '../../core/constants/form-options';
 
 export type QuizFormData = { row?: QuizQuestionOut | null };
@@ -91,6 +92,17 @@ export type QuizFormData = { row?: QuizQuestionOut | null };
             </mat-form-field>
           </div>
 
+          @if (auth.isProf()) {
+            <mat-form-field appearance="outline" class="fd-full">
+              <mat-label>Visibilité</mat-label>
+              <mat-icon matPrefix>visibility</mat-icon>
+              <mat-select formControlName="visibility">
+                <mat-option value="public">Publié pour tous</mat-option>
+                <mat-option value="school">Privé à mon établissement</mat-option>
+              </mat-select>
+            </mat-form-field>
+          }
+
           <!-- options + correct answer -->
           <div class="fd-section">
             <mat-icon>list</mat-icon>
@@ -158,6 +170,7 @@ export type QuizFormData = { row?: QuizQuestionOut | null };
 })
 export class QuizFormDialogComponent {
   private readonly api = inject(ApiService);
+  readonly auth = inject(AdminAuthService);
   private readonly fb  = inject(FormBuilder);
 
   readonly levels     = LEVELS;
@@ -173,6 +186,7 @@ export class QuizFormDialogComponent {
     question:    ['', Validators.required],
     category:    [QUIZ_CATEGORIES[0], Validators.required],
     level:       [LEVELS[0], Validators.required],
+    visibility:  ['public', Validators.required],
     explanation: [''],
   });
 
@@ -187,6 +201,7 @@ export class QuizFormDialogComponent {
         question:    r.question,
         category:    r.category,
         level:       r.level,
+        visibility:  r.visibility || 'public',
         explanation: r.explanation || '',
       });
       const opts = [...(r.options || [])];
@@ -226,11 +241,13 @@ export class QuizFormDialogComponent {
         explanation:  v.explanation || null,
         category:     v.category,
         level:        v.level,
+        visibility:   v.visibility,
       };
+      const base = this.auth.isProf() ? '/prof/quiz-questions' : '/admin/quiz-questions';
       if (this.data.row) {
-        await this.api.put<QuizQuestionOut>(`/admin/quiz-questions/${this.data.row.id}`, payload);
+        await this.api.put<QuizQuestionOut>(`${base}/${this.data.row.id}`, payload);
       } else {
-        await this.api.post<QuizQuestionOut>('/admin/quiz-questions', payload);
+        await this.api.post<QuizQuestionOut>(base, payload);
       }
       this.dialogRef.close(true);
     } catch {
